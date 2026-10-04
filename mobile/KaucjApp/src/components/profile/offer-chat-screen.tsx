@@ -526,9 +526,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   listContent: {
-    paddingHorizontal: spacing.sm,
+    paddingHorizontal: 12,
     paddingVertical: spacing.sm,
-    gap: spacing.sm,
+    gap: 6,
   },
   bubbleRow: {
     flexDirection: "row",
@@ -566,9 +566,9 @@ const styles = StyleSheet.create({
     marginVertical: spacing.xs,
   },
   bubble: {
-    borderRadius: rounded.lg,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
+    borderRadius: 18,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 12,
     gap: 4,
   },
   bubbleMine: {
@@ -603,7 +603,7 @@ const styles = StyleSheet.create({
   },
   body: {
     fontSize: 17,
-    lineHeight: 23,
+    lineHeight: 24,
     color: colors.text.primary,
   },
   bodyMine: {
