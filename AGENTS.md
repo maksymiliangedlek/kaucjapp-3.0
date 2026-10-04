@@ -20,7 +20,7 @@ Every change must satisfy all three principles. If a change breaks any of them, 
 
 - Nothing is done manually on the server. Deploys, backups, OS updates, log rotation, image cleanup and alerting all have automation in the repo (GitHub Actions, systemd timers, `deploy/scripts/`).
 - A new operational feature (new service, new database, new Kafka topic) is not finished until it is added to: `deploy/compose.prod.yaml`, `deploy/.env.example`, the image workflow, the smoke test, and backups (if it holds data).
-- Dependencies are updated by Dependabot. The server patches itself (`unattended-upgrades`).
+- Dependabot opens PRs for security fixes only (routine version bumps are disabled in `.github/dependabot.yml`); other upgrades are done deliberately. The server patches itself (`unattended-upgrades`).
 - Scripts must be idempotent (running twice gives the same result) and fail loudly (`set -euo pipefail`).
 - If a "do this by hand" step appears, treat it as a bug to automate, or document it in `deploy/README.md` as a one-time step with justification.
 

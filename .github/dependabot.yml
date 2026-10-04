@@ -1,10 +1,12 @@
+# Security updates only: `open-pull-requests-limit: 0` disables routine version bumps, while
+# Dependabot security updates (enabled in the repository settings) still open PRs for known vulnerabilities.
 version: 2
 updates:
   - package-ecosystem: maven
     directory: /backend
     schedule:
-      interval: weekly
-    open-pull-requests-limit: 5
+      interval: monthly
+    open-pull-requests-limit: 0
     groups:
       spring:
         patterns: ["org.springframework*"]
@@ -12,20 +14,24 @@ updates:
   - package-ecosystem: docker
     directory: /backend
     schedule:
-      interval: weekly
+      interval: monthly
+    open-pull-requests-limit: 0
 
   - package-ecosystem: docker
     directory: /backend/monitor
     schedule:
-      interval: weekly
+      interval: monthly
+    open-pull-requests-limit: 0
 
   # Pinned third-party images of the production stack (postgres, kafka, redis, caddy)
   - package-ecosystem: docker-compose
     directory: /deploy
     schedule:
-      interval: weekly
+      interval: monthly
+    open-pull-requests-limit: 0
 
   - package-ecosystem: github-actions
     directory: /
     schedule:
-      interval: weekly
+      interval: monthly
+    open-pull-requests-limit: 0
