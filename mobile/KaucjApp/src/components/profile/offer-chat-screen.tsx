@@ -10,7 +10,6 @@ import { useAuth } from "@/src/auth/use-auth";
 import EmptyState from "@/src/components/states/empty-state";
 import ErrorState from "@/src/components/states/error-state";
 import LoadingState from "@/src/components/states/loading-state";
-import { formatDate } from "@/src/lib";
 import { colors, rounded, spacing } from "@/src/theme";
 import { OfferMessage, OfferStatus } from "@/src/types";
 import { Ionicons } from "@expo/vector-icons";
@@ -105,6 +104,9 @@ export default function OfferChatScreen({ offerId }: OfferChatScreenProps) {
   const peerName = counterparty?.firstName || "Czat";
   useLayoutEffect(() => {
     navigation.setOptions({
+      headerTransparent: true,
+      headerShadowVisible: false,
+      headerBlurEffect: "regular",
       headerTitle: () => (
         <ChatPeerTitle imageUrl={peerImageUrl} name={peerName} />
       ),
@@ -213,16 +215,31 @@ export default function OfferChatScreen({ offerId }: OfferChatScreenProps) {
             keyExtractor={(item) =>
               item.clientMessageId ?? String(item.messageId)
             }
-            contentContainerStyle={styles.listContent}
+            contentContainerStyle={[
+              styles.listContent,
+              { paddingBottom: headerHeight + spacing.sm },
+            ]}
             keyboardShouldPersistTaps="handled"
-            renderItem={({ item }) => (
-              <MessageBubble
-                message={item}
-                mine={item.senderId === user?.userId}
-                enabled={canSend}
-                onReply={() => setReplyTo(item)}
-              />
-            )}
+            renderItem={({ item, index }) => {
+              const older = listData[index + 1];
+              const showDay = !older || !isSameDay(older.createdAt, item.createdAt);
+              return (
+                <View style={styles.messageCell}>
+                  <MessageBubble
+                    message={item}
+                    mine={item.senderId === user?.userId}
+                    enabled={canSend}
+                    onReply={() => setReplyTo(item)}
+                  />
+                  {/* Inverted list: the last child renders above the bubble. */}
+                  {showDay ? (
+                    <Text style={styles.dayLabel}>
+                      {formatDayLabel(item.createdAt)}
+                    </Text>
+                  ) : null}
+                </View>
+              );
+            }}
           />
         )}
       </View>
@@ -305,6 +322,31 @@ function ChatPeerTitle({
   );
 }
 
+function isSameDay(left: string, right: string) {
+  return new Date(left).toDateString() === new Date(right).toDateString();
+}
+
+function formatDayLabel(value: string) {
+  const date = new Date(value);
+  const now = new Date();
+  if (isSameDay(value, now.toISOString())) return "Dziś";
+  const yesterday = new Date(now);
+  yesterday.setDate(now.getDate() - 1);
+  if (isSameDay(value, yesterday.toISOString())) return "Wczoraj";
+  return date.toLocaleDateString("pl-PL", {
+    day: "numeric",
+    month: "long",
+    ...(date.getFullYear() !== now.getFullYear() && { year: "numeric" }),
+  });
+}
+
+function formatTime(value: string) {
+  return new Date(value).toLocaleTimeString("pl-PL", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
 function mergeMessages(messages: OfferMessage[]): OfferMessage[] {
   const byKey = new Map<string, OfferMessage>();
   for (const message of messages) {
@@ -382,7 +424,7 @@ function MessageBubble({
         />
       </Animated.View>
       <GestureDetector gesture={pan}>
-        <Animated.View style={animatedStyle}>
+        <Animated.View style={[styles.bubbleWrap, animatedStyle]}>
           <View
             style={[
               styles.bubble,
@@ -414,10 +456,10 @@ function MessageBubble({
             <Text style={[styles.body, mine && styles.bodyMine]}>
               {message.body}
             </Text>
-            <Text style={[styles.time, mine && styles.timeMine]}>
-              {formatDate(message.createdAt)}
-            </Text>
           </View>
+          <Text style={[styles.time, mine && styles.timeMine]}>
+            {formatTime(message.createdAt)}
+          </Text>
         </Animated.View>
       </GestureDetector>
     </View>
@@ -486,8 +528,21 @@ const styles = StyleSheet.create({
   replyHintRight: {
     right: 0,
   },
-  bubble: {
+  bubbleWrap: {
     maxWidth: "88%",
+    gap: 2,
+  },
+  messageCell: {
+    gap: spacing.sm,
+  },
+  dayLabel: {
+    alignSelf: "center",
+    fontSize: 12,
+    fontWeight: "500",
+    color: colors.text.muted,
+    marginVertical: spacing.xs,
+  },
+  bubble: {
     borderRadius: rounded.lg,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
@@ -536,9 +591,10 @@ const styles = StyleSheet.create({
   time: {
     fontSize: 11,
     color: colors.text.muted,
+    paddingHorizontal: spacing.xs,
   },
   timeMine: {
-    color: colors.primary.light,
+    alignSelf: "flex-end",
   },
   composerBlock: {
     borderTopWidth: 1,
