@@ -31,6 +31,12 @@ export interface Offer {
   updatedAt: string;
 }
 
+export interface OfferMessageReplyPreview {
+  messageId: number;
+  senderId: number;
+  body: string;
+}
+
 export interface OfferMessage {
   messageId: number;
   offerId: number;
@@ -38,6 +44,7 @@ export interface OfferMessage {
   body: string;
   createdAt: string;
   clientMessageId: string | null;
+  replyTo: OfferMessageReplyPreview | null;
 }
 
 export interface OfferItemPayload {

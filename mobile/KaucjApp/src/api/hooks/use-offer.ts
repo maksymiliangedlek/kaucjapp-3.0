@@ -300,17 +300,21 @@ export const useSendOfferMessage = (offerId: number, senderId: number) => {
     mutationFn: async ({
       body,
       clientMessageId,
+      replyToMessageId,
+      replyTo,
     }: {
       body: string;
       clientMessageId: string;
+      replyToMessageId?: number;
+      replyTo?: OfferMessage["replyTo"];
     }) => {
       const { data } = await apiClient.post<OfferMessage>(
         `/offer/${offerId}/messages`,
-        { body, clientMessageId },
+        { body, clientMessageId, replyToMessageId },
       );
       return data;
     },
-    onMutate: async ({ body, clientMessageId }) => {
+    onMutate: async ({ body, clientMessageId, replyTo }) => {
       await queryClient.cancelQueries({
         queryKey: offerKeys.messages(offerId),
       });
@@ -324,6 +328,7 @@ export const useSendOfferMessage = (offerId: number, senderId: number) => {
         body,
         createdAt: new Date().toISOString(),
         clientMessageId,
+        replyTo: replyTo ?? null,
       };
       queryClient.setQueryData<OfferMessage[]>(
         offerKeys.messages(offerId),
