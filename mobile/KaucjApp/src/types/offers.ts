@@ -31,6 +31,15 @@ export interface Offer {
   updatedAt: string;
 }
 
+export interface OfferMessage {
+  messageId: number;
+  offerId: number;
+  senderId: number;
+  body: string;
+  createdAt: string;
+  clientMessageId: string | null;
+}
+
 export interface OfferItemPayload {
   bottleId: 1 | 2; //notnull plastic - 1, can - 2
   quantity: number; //notnull, min 1

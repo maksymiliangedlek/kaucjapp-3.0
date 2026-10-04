@@ -3,6 +3,7 @@ import { useUserById } from "@/src/api/hooks/use-user";
 import SectionCard from "@/src/components/ui/section-card";
 import { colors, rounded, spacing } from "@/src/theme";
 import * as Linking from "expo-linking";
+import { useRouter } from "expo-router";
 import { MessageCircle, Phone } from "lucide-react-native";
 import React from "react";
 import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
@@ -19,6 +20,8 @@ function toTelUrl(phone: string | null | undefined): string | null {
 interface ContactCardProps {
   asCard?: boolean;
   userId: number | null;
+  offerId: number;
+  chatPathname: "/profile/bookings/chat" | "/profile/offers/chat";
   header?: string;
   isTheUserCourier?: boolean;
   onUserProfileInfoPress?: () => void;
@@ -27,6 +30,8 @@ interface ContactCardProps {
 export default function ContactCard({
   asCard = true,
   userId,
+  offerId,
+  chatPathname,
   header,
   isTheUserCourier = false,
   onUserProfileInfoPress,
@@ -43,6 +48,7 @@ export default function ContactCard({
   } = useUserById(userId);
   const { data: userRating, isLoading: isLoadingUserRating } =
     useUserRating(userId);
+  const router = useRouter();
 
   if (isLoadingUser) return null;
 
@@ -76,10 +82,10 @@ export default function ContactCard({
   };
 
   const handleMessage = () => {
-    Alert.alert(
-      "Wkrótce",
-      "Funkcja wiadomości do kuriera będzie dostępna już niedługo.",
-    );
+    router.push({
+      pathname: chatPathname,
+      params: { offerId: String(offerId) },
+    });
   };
   const body = (
     <View style={styles.courierSection}>
