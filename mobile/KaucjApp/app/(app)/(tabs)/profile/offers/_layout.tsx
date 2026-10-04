@@ -50,7 +50,6 @@ export default function OffersLayout() {
           headerBackButtonDisplayMode: "minimal",
           headerTransparent: true,
           headerShadowVisible: false,
-          headerBlurEffect: "none",
           scrollEdgeEffects: {
             top: "hidden",
             bottom: "hidden",

@@ -29,7 +29,6 @@ import {
   TextInput,
   View,
 } from "react-native";
-import { BlurView } from "expo-blur";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
   runOnJS,
@@ -243,7 +242,7 @@ export default function OfferChatScreen({ offerId }: OfferChatScreenProps) {
             }}
           />
         )}
-        <ChatHeaderMaterial height={headerHeight} />
+        <ChatHeaderFade height={headerHeight} />
       </View>
 
       {canSend ? (
@@ -299,35 +298,25 @@ export default function OfferChatScreen({ offerId }: OfferChatScreenProps) {
   );
 }
 
-function ChatHeaderMaterial({ height }: { height: number }) {
+function ChatHeaderFade({ height }: { height: number }) {
   const fadeHeight = height + spacing.lg;
   return (
     <View
       pointerEvents="none"
-      style={[styles.headerMaterial, { height: fadeHeight }]}
+      style={[styles.headerFade, { height: fadeHeight }]}
     >
-      <BlurView
-        intensity={12}
-        tint="light"
-        style={[styles.headerMaterialLayer, { height: fadeHeight }]}
-      />
-      <BlurView
-        intensity={28}
-        tint="light"
-        style={[styles.headerMaterialLayer, { height }]}
-      />
       <Svg width="100%" height="100%">
         <Defs>
-          <LinearGradient id="headerTint" x1="0" y1="0" x2="0" y2="1">
+          <LinearGradient id="headerFade" x1="0" y1="0" x2="0" y2="1">
             <Stop
               offset="0"
               stopColor={colors.background.main}
-              stopOpacity="0.72"
+              stopOpacity="0.96"
             />
             <Stop
               offset={String(height / fadeHeight)}
               stopColor={colors.background.main}
-              stopOpacity="0.5"
+              stopOpacity="0.88"
             />
             <Stop
               offset="1"
@@ -336,7 +325,7 @@ function ChatHeaderMaterial({ height }: { height: number }) {
             />
           </LinearGradient>
         </Defs>
-        <Rect width="100%" height="100%" fill="url(#headerTint)" />
+        <Rect width="100%" height="100%" fill="url(#headerFade)" />
       </Svg>
     </View>
   );
@@ -547,13 +536,7 @@ const styles = StyleSheet.create({
   thread: {
     flex: 1,
   },
-  headerMaterial: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-  },
-  headerMaterialLayer: {
+  headerFade: {
     position: "absolute",
     top: 0,
     left: 0,
