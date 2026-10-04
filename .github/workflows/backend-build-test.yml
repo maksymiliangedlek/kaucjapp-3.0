@@ -28,9 +28,21 @@ jobs:
       - name: Set up Docker Build
         uses: docker/setup-buildx-action@v3
 
+      - name: Generate throwaway CI credentials
+        # Nothing here touches production secrets: they are random per run, so the workflow also works for forks and Dependabot PRs.
+        run: |
+          set -euo pipefail
+          for name in DB_PASSWORD JWT_SECRET IT_SECRET ADMIN_PASSWORD; do
+            value="$(openssl rand -hex 24)"
+            echo "::add-mask::$value"
+            echo "$name=$value" >> "$GITHUB_ENV"
+          done
+          echo "PASSWORD_SALT=$(openssl rand -hex 8)" >> "$GITHUB_ENV"
+          echo "ADMIN_USERNAME=admin" >> "$GITHUB_ENV"
+          echo "ADMIN_EMAIL=ci-admin@example.com" >> "$GITHUB_ENV"
+
       - name: Run Spring Boot Tests
         env:
-          JWT_SECRET: ${{ secrets.JWT_SECRET }}
           TESTCONTAINERS_RYUK_DISABLED: true
         run: ./mvnw test
 
@@ -40,19 +52,11 @@ jobs:
       - name: Build and launch containers
         env:
           DB_USER: postgres
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-          JWT_SECRET: ${{ secrets.JWT_SECRET }}
-          PASSWORD_SALT: ${{ secrets.PASSWORD_SALT }}
-          ADMIN_USERNAME: ${{ secrets.ADMIN_USERNAME }}
-          ADMIN_EMAIL: ${{ secrets.ADMIN_EMAIL }}
-          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
-          IT_SECRET: ${{ secrets.IT_SECRET }}
         run: docker compose -f compose.yaml -f compose.cicd.yaml up --build -d --wait --wait-timeout 300
 
       - name: Seed a users-service profile for the bootstrap admin
         env:
           DB_USER: postgres
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
         run: |
           # Accounts are activated by e-mail, so the profile is created the same way auth does: through users.sync.
           echo '{"user_id":1,"username":"smokeadmin","first_name":"Smoke","last_name":"Admin","phone":"123456789","email":"smoke-admin@example.com"}' \
@@ -62,8 +66,6 @@ jobs:
 
       - name: Smoke test through the gateway
         env:
-          ADMIN_USERNAME: ${{ secrets.ADMIN_USERNAME }}
-          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
           SMOKE_UPLOAD: "1"
         run: ../deploy/scripts/smoke-test.sh http://localhost:8080
 
@@ -71,12 +73,10 @@ jobs:
         if: failure()
         env:
           DB_USER: postgres
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
         run: docker compose -f compose.yaml -f compose.cicd.yaml logs
 
       - name: Tear down
         if: always()
         env:
           DB_USER: postgres
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
         run: docker compose -f compose.yaml -f compose.cicd.yaml down -v
