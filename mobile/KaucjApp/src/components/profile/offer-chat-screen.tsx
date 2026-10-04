@@ -526,7 +526,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   listContent: {
-    paddingHorizontal: spacing.md,
+    paddingHorizontal: spacing.sm,
     paddingVertical: spacing.sm,
     gap: spacing.sm,
   },
@@ -567,8 +567,8 @@ const styles = StyleSheet.create({
   },
   bubble: {
     borderRadius: rounded.lg,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
     gap: 4,
   },
   bubbleMine: {
@@ -576,8 +576,6 @@ const styles = StyleSheet.create({
   },
   bubbleTheirs: {
     backgroundColor: colors.background.card,
-    borderWidth: 1,
-    borderColor: colors.status.border,
   },
   inlineReply: {
     flexDirection: "row",
@@ -604,8 +602,8 @@ const styles = StyleSheet.create({
     color: colors.primary.light,
   },
   body: {
-    fontSize: 15,
-    lineHeight: 21,
+    fontSize: 17,
+    lineHeight: 23,
     color: colors.text.primary,
   },
   bodyMine: {
