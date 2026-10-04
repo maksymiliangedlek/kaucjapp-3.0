@@ -32,11 +32,16 @@ jobs:
         # Nothing here touches production secrets: they are random per run, so the workflow also works for forks and Dependabot PRs.
         run: |
           set -euo pipefail
-          for name in DB_PASSWORD JWT_SECRET IT_SECRET ADMIN_PASSWORD; do
+          for name in DB_PASSWORD IT_SECRET ADMIN_PASSWORD; do
             value="$(openssl rand -hex 24)"
             echo "::add-mask::$value"
             echo "$name=$value" >> "$GITHUB_ENV"
           done
+          # Exactly 32 bytes: api-gateway tests sign with jjwt (which picks HS384/HS512 for longer keys)
+          # while the gateway decoder only accepts HS256.
+          value="$(openssl rand -hex 16)"
+          echo "::add-mask::$value"
+          echo "JWT_SECRET=$value" >> "$GITHUB_ENV"
           echo "PASSWORD_SALT=$(openssl rand -hex 8)" >> "$GITHUB_ENV"
           echo "ADMIN_USERNAME=admin" >> "$GITHUB_ENV"
           echo "ADMIN_EMAIL=ci-admin@example.com" >> "$GITHUB_ENV"
