@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pl.isigmas.kaucjapp.common.logger.Logger;
 import pl.isigmas.kaucjapp.offers.DTO.*;
+import pl.isigmas.kaucjapp.offers.service.OfferMessageService;
 import pl.isigmas.kaucjapp.offers.service.OfferService;
 
 import java.util.List;
@@ -28,6 +29,7 @@ import java.util.List;
 public class OfferController {
 
     private final OfferService service;
+    private final OfferMessageService messageService;
     private final Logger logger;
 
 
@@ -288,6 +290,52 @@ public class OfferController {
         return ResponseEntity.ok(service.getMyCollectedOffersHistory(userId));
     }
 
+    @GetMapping("/{id:\\d+}/messages")
+    @Operation(
+            summary = "List messages for an offer",
+            description = "Returns messages for the offer in ascending message_id order. "
+                    + "Without after, the latest page (default 50, max 100) is returned. "
+                    + "With after, the next page of messages whose message_id is greater than after. "
+                    + "Only the creator or the collector may call this.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "List of OfferMessageResponseDTO (may be empty)."),
+            @ApiResponse(responseCode = "403", description = "OFFER_007 — caller is not the creator or the collector."),
+            @ApiResponse(responseCode = "404", description = "OFFER_001 — offer not found.")
+    })
+    public ResponseEntity<List<OfferMessageResponseDTO>> listMessages(
+            @PathVariable Long id,
+            @RequestHeader("X-User-Id") Long userId,
+            @RequestParam(required = false) Long after,
+            @RequestParam(defaultValue = "50") int limit) {
+        log.info("Listing messages for offer {} by user {}", id, userId);
+        logger.info("Listing messages for offer %d by user %d".formatted(id, userId));
+        return ResponseEntity.ok(messageService.list(id, userId, after, limit));
+    }
 
+    @PostMapping("/{id:\\d+}/messages")
+    @Operation(
+            summary = "Send a message on an offer",
+            description = "Body: body (1–1000 characters) and optional client_message_id. "
+                    + "Repeating the same client_message_id returns the existing message. "
+                    + "Sending is allowed only for RESERVED, PENDING_CONFIRMATION and COMPLAINT. "
+                    + "Only the creator or the collector may call this. Message text is not logged.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "Message stored; body is OfferMessageResponseDTO."),
+            @ApiResponse(responseCode = "200", description = "Same client_message_id already stored; existing message returned."),
+            @ApiResponse(responseCode = "400", description = "VALIDATION_ERR — blank or too long body."),
+            @ApiResponse(responseCode = "403", description = "OFFER_007 — caller is not the creator or the collector."),
+            @ApiResponse(responseCode = "404", description = "OFFER_001 — offer not found."),
+            @ApiResponse(responseCode = "409", description = "OFFER_008 — offer status does not allow new messages.")
+    })
+    public ResponseEntity<OfferMessageResponseDTO> postMessage(
+            @PathVariable Long id,
+            @RequestHeader("X-User-Id") Long userId,
+            @Valid @RequestBody CreateOfferMessageDTO request) {
+        OfferMessageService.SendResult result = messageService.send(id, userId, request);
+        log.info("Offer message from user {} on offer {}", userId, id);
+        logger.info("Offer message from user %d on offer %d".formatted(userId, id));
+        HttpStatus status = result.created() ? HttpStatus.CREATED : HttpStatus.OK;
+        return ResponseEntity.status(status).body(result.message());
+    }
 
 }
