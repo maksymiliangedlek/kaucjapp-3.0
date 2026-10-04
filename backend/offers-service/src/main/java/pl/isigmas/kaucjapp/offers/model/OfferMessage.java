@@ -22,7 +22,7 @@ import java.util.UUID;
 @Getter
 @Setter
 @NoArgsConstructor
-@ToString(exclude = "offer")
+@ToString(exclude = {"offer", "replyTo"})
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class OfferMessage {
 
@@ -48,4 +48,8 @@ public class OfferMessage {
 
     @Column(name = "client_message_id")
     private UUID clientMessageId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "reply_to_message_id")
+    private OfferMessage replyTo;
 }

@@ -21,6 +21,9 @@ public class CreateOfferMessageDTO {
     @Setter
     private UUID clientMessageId;
 
+    @Setter
+    private Long replyToMessageId;
+
     public void setBody(String body) {
         this.body = body == null ? null : body.trim();
     }

@@ -7,10 +7,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pl.isigmas.kaucjapp.common.logger.Logger;
 import pl.isigmas.kaucjapp.offers.DTO.CreateOfferMessageDTO;
+import pl.isigmas.kaucjapp.offers.DTO.OfferMessageReplyPreviewDTO;
 import pl.isigmas.kaucjapp.offers.DTO.OfferMessageResponseDTO;
 import pl.isigmas.kaucjapp.offers.exception.OfferForbiddenException;
 import pl.isigmas.kaucjapp.offers.exception.OfferNotFoundException;
 import pl.isigmas.kaucjapp.offers.exception.OfferStateException;
+import pl.isigmas.kaucjapp.offers.exception.OfferValidationException;
 import pl.isigmas.kaucjapp.offers.model.Offer;
 import pl.isigmas.kaucjapp.offers.model.OfferMessage;
 import pl.isigmas.kaucjapp.offers.model.OfferStatus;
@@ -60,6 +62,7 @@ public class OfferMessageService {
     public SendResult send(Long offerId, Long userId, CreateOfferMessageDTO request) {
         String body = request.getBody();
         UUID clientMessageId = request.getClientMessageId();
+        Long replyToMessageId = request.getReplyToMessageId();
 
         Offer offer = loadPartyOffer(offerId, userId);
 
@@ -79,15 +82,40 @@ public class OfferMessageService {
                     "Messages can be sent only while the offer is RESERVED, PENDING_CONFIRMATION or COMPLAINT");
         }
 
-        return new SendResult(insert(offerId, userId, body, clientMessageId), true);
+        OfferMessage replyTo = resolveReplyTarget(offerId, replyToMessageId);
+        return new SendResult(insert(offerId, userId, body, clientMessageId, replyTo), true);
     }
 
-    private OfferMessageResponseDTO insert(Long offerId, Long userId, String body, UUID clientMessageId) {
+    private OfferMessage resolveReplyTarget(Long offerId, Long replyToMessageId) {
+        if (replyToMessageId == null) {
+            return null;
+        }
+        OfferMessage target = messageRepository.findById(replyToMessageId).orElseThrow(() -> {
+            log.warn("Reply target not found, message ID: {} for offer ID: {}", replyToMessageId, offerId);
+            logger.warn("Reply target not found, message ID: %d for offer ID: %d".formatted(replyToMessageId, offerId));
+            return new OfferValidationException("Reply target message does not belong to this offer");
+        });
+        if (!Objects.equals(target.getOffer().getId(), offerId)) {
+            log.warn("Reply target message ID: {} is outside offer ID: {}", replyToMessageId, offerId);
+            logger.warn("Reply target message ID: %d is outside offer ID: %d".formatted(replyToMessageId, offerId));
+            throw new OfferValidationException("Reply target message does not belong to this offer");
+        }
+        return target;
+    }
+
+    private OfferMessageResponseDTO insert(
+            Long offerId,
+            Long userId,
+            String body,
+            UUID clientMessageId,
+            OfferMessage replyTo
+    ) {
         OfferMessage message = new OfferMessage();
         message.setOffer(offerRepository.getReferenceById(offerId));
         message.setSenderId(userId);
         message.setBody(body);
         message.setClientMessageId(clientMessageId);
+        message.setReplyTo(replyTo);
         OfferMessage saved = messageRepository.saveAndFlush(message);
         log.info("Offer message stored for offer ID: {} by user ID: {}", offerId, userId);
         logger.info("Offer message stored for offer ID: %d by user ID: %d".formatted(offerId, userId));
@@ -116,6 +144,18 @@ public class OfferMessageService {
                 .body(message.getBody())
                 .createdAt(message.getCreatedAt())
                 .clientMessageId(message.getClientMessageId())
+                .replyTo(toReplyPreview(message.getReplyTo()))
+                .build();
+    }
+
+    private OfferMessageReplyPreviewDTO toReplyPreview(OfferMessage replyTo) {
+        if (replyTo == null) {
+            return null;
+        }
+        return OfferMessageReplyPreviewDTO.builder()
+                .messageId(replyTo.getId())
+                .senderId(replyTo.getSenderId())
+                .body(replyTo.getBody())
                 .build();
     }
 
