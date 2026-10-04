@@ -50,6 +50,15 @@ export default function BookingsLayout() {
           headerTitle: "Czat",
           headerLargeTitleEnabled: false,
           headerBackButtonDisplayMode: "minimal",
+          headerTransparent: true,
+          headerShadowVisible: false,
+          headerBlurEffect: "none",
+          scrollEdgeEffects: {
+            top: "hidden",
+            bottom: "hidden",
+            left: "hidden",
+            right: "hidden",
+          },
         }}
       />
 

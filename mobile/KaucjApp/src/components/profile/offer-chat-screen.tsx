@@ -30,6 +30,7 @@ import {
   TextInput,
   View,
 } from "react-native";
+import { BlurView } from "expo-blur";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
   runOnJS,
@@ -105,8 +106,6 @@ export default function OfferChatScreen({ offerId }: OfferChatScreenProps) {
   const peerName = counterparty?.firstName || "Czat";
   useLayoutEffect(() => {
     navigation.setOptions({
-      headerTransparent: true,
-      headerShadowVisible: false,
       headerTitle: () => (
         <ChatPeerTitle imageUrl={peerImageUrl} name={peerName} />
       ),
@@ -222,7 +221,8 @@ export default function OfferChatScreen({ offerId }: OfferChatScreenProps) {
             keyboardShouldPersistTaps="handled"
             renderItem={({ item, index }) => {
               const older = listData[index + 1];
-              const showDay = !older || !isSameDay(older.createdAt, item.createdAt);
+              const showDay =
+                !older || !isSameDay(older.createdAt, item.createdAt);
               return (
                 <View style={styles.messageCell}>
                   <MessageBubble
@@ -242,33 +242,7 @@ export default function OfferChatScreen({ offerId }: OfferChatScreenProps) {
             }}
           />
         )}
-        <View
-          pointerEvents="none"
-          style={[styles.headerFade, { height: headerHeight + spacing.lg }]}
-        >
-          <Svg width="100%" height="100%">
-            <Defs>
-              <LinearGradient id="headerFade" x1="0" y1="0" x2="0" y2="1">
-                <Stop
-                  offset="0"
-                  stopColor={colors.background.main}
-                  stopOpacity="1"
-                />
-                <Stop
-                  offset="0.55"
-                  stopColor={colors.background.main}
-                  stopOpacity="0.85"
-                />
-                <Stop
-                  offset="1"
-                  stopColor={colors.background.main}
-                  stopOpacity="0"
-                />
-              </LinearGradient>
-            </Defs>
-            <Rect width="100%" height="100%" fill="url(#headerFade)" />
-          </Svg>
-        </View>
+        <ChatHeaderMaterial height={headerHeight} />
       </View>
 
       {canSend ? (
@@ -321,6 +295,49 @@ export default function OfferChatScreen({ offerId }: OfferChatScreenProps) {
         </Text>
       )}
     </KeyboardAvoidingView>
+  );
+}
+
+function ChatHeaderMaterial({ height }: { height: number }) {
+  const fadeHeight = height + spacing.lg;
+  return (
+    <View
+      pointerEvents="none"
+      style={[styles.headerMaterial, { height: fadeHeight }]}
+    >
+      <BlurView
+        intensity={12}
+        tint="light"
+        style={[styles.headerMaterialLayer, { height: fadeHeight }]}
+      />
+      <BlurView
+        intensity={28}
+        tint="light"
+        style={[styles.headerMaterialLayer, { height }]}
+      />
+      <Svg width="100%" height="100%">
+        <Defs>
+          <LinearGradient id="headerTint" x1="0" y1="0" x2="0" y2="1">
+            <Stop
+              offset="0"
+              stopColor={colors.background.main}
+              stopOpacity="0.72"
+            />
+            <Stop
+              offset={String(height / fadeHeight)}
+              stopColor={colors.background.main}
+              stopOpacity="0.5"
+            />
+            <Stop
+              offset="1"
+              stopColor={colors.background.main}
+              stopOpacity="0"
+            />
+          </LinearGradient>
+        </Defs>
+        <Rect width="100%" height="100%" fill="url(#headerTint)" />
+      </Svg>
+    </View>
   );
 }
 
@@ -529,7 +546,13 @@ const styles = StyleSheet.create({
   thread: {
     flex: 1,
   },
-  headerFade: {
+  headerMaterial: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+  },
+  headerMaterialLayer: {
     position: "absolute",
     top: 0,
     left: 0,
