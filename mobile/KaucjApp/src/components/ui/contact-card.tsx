@@ -1,12 +1,20 @@
+import { useUserRating } from "@/src/api/hooks/use-rating";
 import { useUserById } from "@/src/api/hooks/use-user";
 import SectionCard from "@/src/components/ui/section-card";
 import { colors, rounded, spacing } from "@/src/theme";
-import { MessageCircle, Phone, Star } from "lucide-react-native";
+import * as Linking from "expo-linking";
+import { MessageCircle, Phone } from "lucide-react-native";
 import React from "react";
 import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import ErrorState from "../states/error-state";
 import UserProfileInfo from "./user-profile-info";
-import { useUserRating } from "@/src/api/hooks/use-rating";
+
+function toTelUrl(phone: string | null | undefined): string | null {
+  const digits = (phone ?? "").replace(/\D/g, "");
+  if (!digits) return null;
+  if (digits.length === 9) return `tel:+48${digits}`;
+  return `tel:+${digits}`;
+}
 
 interface ContactCardProps {
   asCard?: boolean;
@@ -48,11 +56,23 @@ export default function ContactCard({
     );
   }
 
-  const handleCall = () => {
-    Alert.alert(
-      "Wkrótce",
-      "Funkcja połączenia z kurierem będzie dostępna już niedługo.",
-    );
+  const handleCall = async () => {
+    const url = toTelUrl(user.phone);
+    if (!url) {
+      Alert.alert(
+        "Brak numeru",
+        "Ta osoba nie ma podanego numeru telefonu.",
+      );
+      return;
+    }
+    try {
+      await Linking.openURL(url);
+    } catch {
+      Alert.alert(
+        "Nie można zadzwonić",
+        "Na tym urządzeniu nie da się otworzyć aplikacji telefonu.",
+      );
+    }
   };
 
   const handleMessage = () => {
