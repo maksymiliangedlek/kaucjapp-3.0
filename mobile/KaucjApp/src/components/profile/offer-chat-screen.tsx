@@ -15,7 +15,13 @@ import { OfferMessage, OfferStatus } from "@/src/types";
 import { Ionicons } from "@expo/vector-icons";
 import { useIsFocused, useNavigation } from "@react-navigation/native";
 import { Reply, Send, X } from "lucide-react-native";
-import React, { useEffect, useLayoutEffect, useMemo, useState } from "react";
+import React, {
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   Alert,
   FlatList,
@@ -36,7 +42,6 @@ import Animated, {
   useSharedValue,
   withSpring,
 } from "react-native-reanimated";
-import Svg, { Defs, LinearGradient, Rect, Stop } from "react-native-svg";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const WRITABLE_STATUSES: OfferStatus[] = [
@@ -52,9 +57,9 @@ const TAB_BAR_CONTENT_HEIGHT =
       ? 72
       : 49
     : 80;
-// The chat header is transparent, so content starts at the top of the screen
-// and only this strip sits under the navigation bar.
-const NAV_BAR_HEIGHT = Platform.OS === "ios" ? 44 : 56;
+// iOS adjusts the scroll inset for the transparent header itself; Android does not.
+const ANDROID_HEADER_HEIGHT = 56;
+const STICK_TO_BOTTOM_SLACK = 80;
 const REPLY_THRESHOLD = 56;
 const REPLY_SPRING = { damping: 30, stiffness: 420, overshootClamping: true };
 
@@ -66,7 +71,8 @@ export default function OfferChatScreen({ offerId }: OfferChatScreenProps) {
   const navigation = useNavigation();
   const isFocused = useIsFocused();
   const insets = useSafeAreaInsets();
-  const headerHeight = insets.top + NAV_BAR_HEIGHT;
+  const listRef = useRef<FlatList<OfferMessage>>(null);
+  const stickToBottom = useRef(true);
   const { user } = useAuth();
   const [draft, setDraft] = useState("");
   const [replyTo, setReplyTo] = useState<OfferMessage | null>(null);
@@ -117,7 +123,12 @@ export default function OfferChatScreen({ offerId }: OfferChatScreenProps) {
     () => mergeMessages(messagesQuery.data ?? []),
     [messagesQuery.data],
   );
-  const listData = useMemo(() => [...messages].reverse(), [messages]);
+
+  const scrollToEnd = () => {
+    if (stickToBottom.current) {
+      listRef.current?.scrollToEnd({ animated: false });
+    }
+  };
 
   const bottomPad = keyboardVisible
     ? spacing.sm
@@ -209,40 +220,51 @@ export default function OfferChatScreen({ offerId }: OfferChatScreenProps) {
           <EmptyState title="Napisz pierwszą wiadomość" />
         ) : (
           <FlatList
-            inverted
-            data={listData}
+            ref={listRef}
+            data={messages}
             keyExtractor={(item) =>
               item.clientMessageId ?? String(item.messageId)
             }
+            contentInsetAdjustmentBehavior="automatic"
             contentContainerStyle={[
               styles.listContent,
-              { paddingBottom: headerHeight + spacing.sm },
+              Platform.OS === "android" && {
+                paddingTop: insets.top + ANDROID_HEADER_HEIGHT + spacing.sm,
+              },
             ]}
             keyboardShouldPersistTaps="handled"
+            onContentSizeChange={scrollToEnd}
+            onLayout={scrollToEnd}
+            onScroll={(event) => {
+              const { contentOffset, contentSize, layoutMeasurement } =
+                event.nativeEvent;
+              stickToBottom.current =
+                contentOffset.y + layoutMeasurement.height >=
+                contentSize.height - STICK_TO_BOTTOM_SLACK;
+            }}
+            scrollEventThrottle={100}
             renderItem={({ item, index }) => {
-              const older = listData[index + 1];
+              const previous = messages[index - 1];
               const showDay =
-                !older || !isSameDay(older.createdAt, item.createdAt);
+                !previous || !isSameDay(previous.createdAt, item.createdAt);
               return (
                 <View style={styles.messageCell}>
+                  {showDay ? (
+                    <Text style={styles.dayLabel}>
+                      {formatDayLabel(item.createdAt)}
+                    </Text>
+                  ) : null}
                   <MessageBubble
                     message={item}
                     mine={item.senderId === user?.userId}
                     enabled={canSend}
                     onReply={() => setReplyTo(item)}
                   />
-                  {/* Inverted list: the last child renders above the bubble. */}
-                  {showDay ? (
-                    <Text style={styles.dayLabel}>
-                      {formatDayLabel(item.createdAt)}
-                    </Text>
-                  ) : null}
                 </View>
               );
             }}
           />
         )}
-        <ChatHeaderFade height={headerHeight} />
       </View>
 
       {canSend ? (
@@ -295,39 +317,6 @@ export default function OfferChatScreen({ offerId }: OfferChatScreenProps) {
         </Text>
       )}
     </KeyboardAvoidingView>
-  );
-}
-
-function ChatHeaderFade({ height }: { height: number }) {
-  const fadeHeight = height + spacing.lg;
-  return (
-    <View
-      pointerEvents="none"
-      style={[styles.headerFade, { height: fadeHeight }]}
-    >
-      <Svg width="100%" height="100%">
-        <Defs>
-          <LinearGradient id="headerFade" x1="0" y1="0" x2="0" y2="1">
-            <Stop
-              offset="0"
-              stopColor={colors.background.main}
-              stopOpacity="0.96"
-            />
-            <Stop
-              offset={String(height / fadeHeight)}
-              stopColor={colors.background.main}
-              stopOpacity="0.88"
-            />
-            <Stop
-              offset="1"
-              stopColor={colors.background.main}
-              stopOpacity="0"
-            />
-          </LinearGradient>
-        </Defs>
-        <Rect width="100%" height="100%" fill="url(#headerFade)" />
-      </Svg>
-    </View>
   );
 }
 
@@ -535,12 +524,6 @@ const styles = StyleSheet.create({
   },
   thread: {
     flex: 1,
-  },
-  headerFade: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
   },
   listContent: {
     paddingHorizontal: spacing.md,
