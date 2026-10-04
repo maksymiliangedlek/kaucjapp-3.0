@@ -44,6 +44,7 @@ After every change, everything below must work exactly as before:
 | `.github/workflows/` | `backend-build-test.yml` (tests + smoke), `backend-images.yml` (images to GHCR), `deploy.yml` (deploy to the VPS). |
 | `mobile/KaucjApp/` | Expo/React Native app. API address: `EXPO_PUBLIC_API_URL`. |
 | `scripts/` | Helper scripts (e.g. deposit machine import). |
+| `.cursor/skills/` | Project agent skills shared with the repo (e.g. `apple-design`). |
 
 ## Production architecture
 
@@ -77,3 +78,8 @@ gh workflow run deploy.yml -f image_tag=<sha>
 - Configuration through Spring-style environment variables (`SPRING_DATASOURCE_URL`, `SPRING_KAFKA_BOOTSTRAP_SERVERS`, ...). No environment-specific values in `application.properties`.
 - Native services must not rely on reflection without hints (see `DtoRuntimeHints`). Register new DTOs in the hints.
 - Never commit `.env` files, `application-local.yml` or any tokens. The git remote URL must not contain a token.
+
+## Agent skills
+
+- Project skills live under `.cursor/skills/<name>/SKILL.md` and apply to every agent in this repo.
+- **`apple-design`** (`.cursor/skills/apple-design/SKILL.md`): use when building or reviewing mobile/UI work — gesture-driven interactions, springs, sheets/drawers, interruptible motion, materials/depth, typography, reduced-motion, and Apple-style design foundations. Read and follow it before shipping UI that involves motion or direct manipulation.
