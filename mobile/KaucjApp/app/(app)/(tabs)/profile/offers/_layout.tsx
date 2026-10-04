@@ -43,6 +43,17 @@ export default function OffersLayout() {
       />
 
       <Stack.Screen
+        name="chat"
+        options={{
+          headerTitle: "Czat",
+          headerLargeTitleEnabled: false,
+          headerBackButtonDisplayMode: "minimal",
+          headerTransparent: true,
+          headerShadowVisible: false,
+        }}
+      />
+
+      <Stack.Screen
         name="complaint"
         options={{
           headerTitle: "Zgłoś problem",

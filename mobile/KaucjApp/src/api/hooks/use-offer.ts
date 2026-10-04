@@ -2,6 +2,7 @@ import {
   Complaint,
   ComplaintPayload,
   Offer,
+  OfferMessage,
   OfferPayload,
   OfferSearchBBox,
   OfferStatus,
@@ -28,6 +29,8 @@ export const offerKeys = {
   reservedHistory: () => [...offerKeys.all, "reserved-history"] as const,
   complaints: (offerId: number) =>
     [...offerKeys.all, "complaints", offerId] as const,
+  messages: (offerId: number) =>
+    [...offerKeys.all, "messages", offerId] as const,
 };
 
 /**
@@ -264,3 +267,102 @@ export const useComplaintOffer = (offerId: number) => {
     },
   });
 };
+
+function createClientMessageId(): string {
+  if (typeof globalThis.crypto?.randomUUID === "function") {
+    return globalThis.crypto.randomUUID();
+  }
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (char) => {
+    const random = Math.floor(Math.random() * 16);
+    const value = char === "x" ? random : (random & 0x3) | 0x8;
+    return value.toString(16);
+  });
+}
+
+export const useOfferMessages = (offerId: number, active: boolean) => {
+  return useQuery({
+    queryKey: offerKeys.messages(offerId),
+    queryFn: async () => {
+      const { data } = await apiClient.get<OfferMessage[]>(
+        `/offer/${offerId}/messages`,
+      );
+      return data;
+    },
+    enabled: Number.isFinite(offerId) && offerId > 0,
+    refetchInterval: active ? 3000 : false,
+  });
+};
+
+export const useSendOfferMessage = (offerId: number, senderId: number) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      body,
+      clientMessageId,
+      replyToMessageId,
+      replyTo,
+    }: {
+      body: string;
+      clientMessageId: string;
+      replyToMessageId?: number;
+      replyTo?: OfferMessage["replyTo"];
+    }) => {
+      const { data } = await apiClient.post<OfferMessage>(
+        `/offer/${offerId}/messages`,
+        { body, clientMessageId, replyToMessageId },
+      );
+      return data;
+    },
+    onMutate: async ({ body, clientMessageId, replyTo }) => {
+      await queryClient.cancelQueries({
+        queryKey: offerKeys.messages(offerId),
+      });
+      const previous = queryClient.getQueryData<OfferMessage[]>(
+        offerKeys.messages(offerId),
+      );
+      const optimistic: OfferMessage = {
+        messageId: -Date.now(),
+        offerId,
+        senderId,
+        body,
+        createdAt: new Date().toISOString(),
+        clientMessageId,
+        replyTo: replyTo ?? null,
+      };
+      queryClient.setQueryData<OfferMessage[]>(
+        offerKeys.messages(offerId),
+        (current) => [...(current ?? []), optimistic],
+      );
+      return { previous, clientMessageId };
+    },
+    onError: (_error, _variables, context) => {
+      if (context) {
+        queryClient.setQueryData(
+          offerKeys.messages(offerId),
+          context.previous,
+        );
+      }
+    },
+    onSuccess: (saved, _variables, context) => {
+      queryClient.setQueryData<OfferMessage[]>(
+        offerKeys.messages(offerId),
+        (current) => {
+          const withoutPending = (current ?? []).filter(
+            (message) => message.clientMessageId !== context?.clientMessageId,
+          );
+          if (
+            withoutPending.some(
+              (message) => message.messageId === saved.messageId,
+            )
+          ) {
+            return withoutPending;
+          }
+          return [...withoutPending, saved];
+        },
+      );
+    },
+  });
+};
+
+export { createClientMessageId };

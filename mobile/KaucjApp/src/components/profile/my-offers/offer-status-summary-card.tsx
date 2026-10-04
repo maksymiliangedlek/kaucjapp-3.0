@@ -105,6 +105,8 @@ export default function OfferStatusSummaryCard({ offer }: OfferHeadlineProps) {
             <ContactCard
               asCard={false}
               userId={offer.collectorId}
+              offerId={offer.offerId}
+              chatPathname="/profile/offers/chat"
               header={courierHeaderText}
               isTheUserCourier={true}
               onUserProfileInfoPress={handleOnUserProfileInfoPress}

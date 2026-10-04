@@ -87,6 +87,8 @@ export default function BookingDetailsScreen({
 
       <ContactCard
         userId={offer.creatorId}
+        offerId={offer.offerId}
+        chatPathname="/profile/bookings/chat"
         header="Wystawiający"
         onUserProfileInfoPress={handleOnUserProfileInfoPress}
       />
