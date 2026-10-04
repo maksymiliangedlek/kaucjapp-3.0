@@ -13,7 +13,6 @@ import LoadingState from "@/src/components/states/loading-state";
 import { colors, rounded, spacing } from "@/src/theme";
 import { OfferMessage, OfferStatus } from "@/src/types";
 import { Ionicons } from "@expo/vector-icons";
-import { useHeaderHeight } from "@react-navigation/elements";
 import { useIsFocused, useNavigation } from "@react-navigation/native";
 import { Reply, Send, X } from "lucide-react-native";
 import React, { useEffect, useLayoutEffect, useMemo, useState } from "react";
@@ -54,6 +53,9 @@ const TAB_BAR_CONTENT_HEIGHT =
       ? 72
       : 49
     : 80;
+// The chat header is transparent, so content starts at the top of the screen
+// and only this strip sits under the navigation bar.
+const NAV_BAR_HEIGHT = Platform.OS === "ios" ? 44 : 56;
 const REPLY_THRESHOLD = 56;
 const REPLY_SPRING = { damping: 30, stiffness: 420, overshootClamping: true };
 
@@ -64,8 +66,8 @@ interface OfferChatScreenProps {
 export default function OfferChatScreen({ offerId }: OfferChatScreenProps) {
   const navigation = useNavigation();
   const isFocused = useIsFocused();
-  const headerHeight = useHeaderHeight();
   const insets = useSafeAreaInsets();
+  const headerHeight = insets.top + NAV_BAR_HEIGHT;
   const { user } = useAuth();
   const [draft, setDraft] = useState("");
   const [replyTo, setReplyTo] = useState<OfferMessage | null>(null);
@@ -194,7 +196,6 @@ export default function OfferChatScreen({ offerId }: OfferChatScreenProps) {
     <KeyboardAvoidingView
       style={styles.screen}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
-      keyboardVerticalOffset={headerHeight}
     >
       <View style={styles.thread}>
         {messagesQuery.isLoading ? (
