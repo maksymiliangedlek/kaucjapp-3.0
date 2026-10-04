@@ -37,6 +37,7 @@ import Animated, {
   useSharedValue,
   withSpring,
 } from "react-native-reanimated";
+import Svg, { Defs, LinearGradient, Rect, Stop } from "react-native-svg";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const WRITABLE_STATUSES: OfferStatus[] = [
@@ -106,7 +107,6 @@ export default function OfferChatScreen({ offerId }: OfferChatScreenProps) {
     navigation.setOptions({
       headerTransparent: true,
       headerShadowVisible: false,
-      headerBlurEffect: "regular",
       headerTitle: () => (
         <ChatPeerTitle imageUrl={peerImageUrl} name={peerName} />
       ),
@@ -242,6 +242,33 @@ export default function OfferChatScreen({ offerId }: OfferChatScreenProps) {
             }}
           />
         )}
+        <View
+          pointerEvents="none"
+          style={[styles.headerFade, { height: headerHeight + spacing.lg }]}
+        >
+          <Svg width="100%" height="100%">
+            <Defs>
+              <LinearGradient id="headerFade" x1="0" y1="0" x2="0" y2="1">
+                <Stop
+                  offset="0"
+                  stopColor={colors.background.main}
+                  stopOpacity="1"
+                />
+                <Stop
+                  offset="0.55"
+                  stopColor={colors.background.main}
+                  stopOpacity="0.85"
+                />
+                <Stop
+                  offset="1"
+                  stopColor={colors.background.main}
+                  stopOpacity="0"
+                />
+              </LinearGradient>
+            </Defs>
+            <Rect width="100%" height="100%" fill="url(#headerFade)" />
+          </Svg>
+        </View>
       </View>
 
       {canSend ? (
@@ -501,6 +528,12 @@ const styles = StyleSheet.create({
   },
   thread: {
     flex: 1,
+  },
+  headerFade: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
   },
   listContent: {
     paddingHorizontal: spacing.md,
