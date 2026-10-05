@@ -1,3 +1,4 @@
+import { ApiError } from "@/src/api/api-error";
 import {
   Complaint,
   ComplaintPayload,
@@ -289,7 +290,11 @@ export const useOfferMessages = (offerId: number, active: boolean) => {
       return data;
     },
     enabled: Number.isFinite(offerId) && offerId > 0,
-    refetchInterval: active ? 3000 : false,
+    // Stop polling once the server rejects us (e.g. the reservation ended).
+    refetchInterval: (query) =>
+      active && !(query.state.error as ApiError | null)?.isClientError
+        ? 3000
+        : false,
   });
 };
 
