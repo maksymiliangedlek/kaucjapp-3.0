@@ -17,7 +17,7 @@ export function useMapController() {
     filter,
   });
 
-  const { offers, machines } = useMapMarkers(filter);
+  const { offers, reservedOffers, machines } = useMapMarkers(filter);
 
   const offersError = {
     isError: offersQuery.isError,
@@ -46,6 +46,7 @@ export function useMapController() {
 
     // marker data
     offers,
+    reservedOffers,
     machines,
     isFetching,
 

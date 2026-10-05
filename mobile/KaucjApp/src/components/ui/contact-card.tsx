@@ -21,7 +21,10 @@ interface ContactCardProps {
   asCard?: boolean;
   userId: number | null;
   offerId: number;
-  chatPathname: "/profile/bookings/chat" | "/profile/offers/chat";
+  chatPathname:
+    | "/profile/bookings/chat"
+    | "/profile/offers/chat"
+    | "/home/chat";
   header?: string;
   isTheUserCourier?: boolean;
   onUserProfileInfoPress?: () => void;

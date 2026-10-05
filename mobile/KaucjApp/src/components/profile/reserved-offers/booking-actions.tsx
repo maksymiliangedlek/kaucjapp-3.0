@@ -2,6 +2,7 @@ import { useChangeOfferStatus } from "@/src/api/hooks/use-offer";
 import { layoutSpring } from "@/src/constants";
 import { colors, rounded, spacing } from "@/src/theme";
 import { OfferStatus } from "@/src/types";
+import { BookingBasePath, bookingRoutes } from "./booking-routes";
 import { useRouter } from "expo-router";
 import { XCircle } from "lucide-react-native";
 import React from "react";
@@ -11,11 +12,13 @@ import Animated from "react-native-reanimated";
 interface BookingActionsProps {
   offerStatus: OfferStatus;
   offerId: number;
+  basePath: BookingBasePath;
 }
 
 export default function BookingActions({
   offerStatus,
   offerId,
+  basePath,
 }: BookingActionsProps) {
   const router = useRouter();
   const { mutate: changeOfferStatus, isPending } = useChangeOfferStatus();
@@ -39,7 +42,7 @@ export default function BookingActions({
               {
                 onSuccess: () => {
                   router.push({
-                    pathname: "/profile/bookings/confirmation",
+                    pathname: bookingRoutes(basePath).confirmation,
                     params: { type: "cancel" },
                   });
                 },

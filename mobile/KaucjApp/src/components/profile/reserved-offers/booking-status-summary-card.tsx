@@ -18,14 +18,18 @@ import { ReservedState } from "../my-offers/offer-status-summary-card";
 import { ActionButton } from "../my-offers/offer-actions";
 import ComplaintCard from "../my-offers/complaint-card";
 import UserReviewCheck from "../../ui/review/has-added-user-review";
+import { BookingBasePath, bookingRoutes } from "./booking-routes";
 
 interface BookingStatusSummaryCardProps {
   offer: Offer;
+  basePath: BookingBasePath;
 }
 
 export default function BookingStatusSummaryCard({
   offer,
+  basePath,
 }: BookingStatusSummaryCardProps) {
+  const routes = bookingRoutes(basePath);
   const router = useRouter();
   const { mutate: confirmOffer, isPending } = useConfirmOffer(offer.offerId);
 
@@ -50,7 +54,7 @@ export default function BookingStatusSummaryCard({
             onSuccess: () => {
               if (isPendingConfirmation) {
                 router.push({
-                  pathname: "/profile/bookings/confirmation",
+                  pathname: routes.confirmation,
                   params: {
                     type: "success",
                     userId: offer.creatorId,
@@ -67,7 +71,7 @@ export default function BookingStatusSummaryCard({
 
   const handleComplaint = () => {
     router.push({
-      pathname: "/profile/bookings/complaint",
+      pathname: routes.complaint,
       params: { id: offer.offerId },
     });
   };
