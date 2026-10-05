@@ -23,10 +23,13 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -46,16 +49,21 @@ public class OfferMessageService {
 
     @Transactional(readOnly = true)
     public List<OfferMessageResponseDTO> list(Long offerId, Long userId, Long after, int limit) {
-        loadPartyOffer(offerId, userId);
+        Offer offer = loadPartyOffer(offerId, userId);
+        Long collectorId = offer.getCollectorId();
+        if (collectorId == null) {
+            return List.of();
+        }
         int size = Math.min(Math.max(limit, 1), MAX_LIMIT);
         var page = PageRequest.of(0, size);
         List<OfferMessage> messages = after == null
-                ? new ArrayList<>(messageRepository.findByOffer_IdOrderByIdDesc(offerId, page))
-                : messageRepository.findByOffer_IdAndIdGreaterThanOrderByIdAsc(offerId, after, page);
+                ? new ArrayList<>(messageRepository.findByOffer_IdAndCollectorIdOrderByIdDesc(offerId, collectorId, page))
+                : messageRepository.findByOffer_IdAndCollectorIdAndIdGreaterThanOrderByIdAsc(
+                        offerId, collectorId, after, page);
         if (after == null) {
             Collections.reverse(messages);
         }
-        return messages.stream().map(this::toDto).toList();
+        return toDtos(messages);
     }
 
     @Transactional
@@ -82,11 +90,12 @@ public class OfferMessageService {
                     "Messages can be sent only while the offer is RESERVED, PENDING_CONFIRMATION or COMPLAINT");
         }
 
-        OfferMessage replyTo = resolveReplyTarget(offerId, replyToMessageId);
-        return new SendResult(insert(offerId, userId, body, clientMessageId, replyTo), true);
+        OfferMessage replyTo = resolveReplyTarget(offer, replyToMessageId);
+        return new SendResult(insert(offer, userId, body, clientMessageId, replyTo), true);
     }
 
-    private OfferMessage resolveReplyTarget(Long offerId, Long replyToMessageId) {
+    private OfferMessage resolveReplyTarget(Offer offer, Long replyToMessageId) {
+        Long offerId = offer.getId();
         if (replyToMessageId == null) {
             return null;
         }
@@ -95,7 +104,8 @@ public class OfferMessageService {
             logger.warn("Reply target not found, message ID: %d for offer ID: %d".formatted(replyToMessageId, offerId));
             return new OfferValidationException("Reply target message does not belong to this offer");
         });
-        if (!Objects.equals(target.getOffer().getId(), offerId)) {
+        if (!Objects.equals(target.getOffer().getId(), offerId)
+                || !Objects.equals(target.getCollectorId(), offer.getCollectorId())) {
             log.warn("Reply target message ID: {} is outside offer ID: {}", replyToMessageId, offerId);
             logger.warn("Reply target message ID: %d is outside offer ID: %d".formatted(replyToMessageId, offerId));
             throw new OfferValidationException("Reply target message does not belong to this offer");
@@ -104,22 +114,24 @@ public class OfferMessageService {
     }
 
     private OfferMessageResponseDTO insert(
-            Long offerId,
+            Offer offer,
             Long userId,
             String body,
             UUID clientMessageId,
             OfferMessage replyTo
     ) {
         OfferMessage message = new OfferMessage();
-        message.setOffer(offerRepository.getReferenceById(offerId));
+        Long offerId = offer.getId();
+        message.setOffer(offer);
+        message.setCollectorId(offer.getCollectorId());
         message.setSenderId(userId);
         message.setBody(body);
         message.setClientMessageId(clientMessageId);
-        message.setReplyTo(replyTo);
+        message.setReplyToMessageId(replyTo != null ? replyTo.getId() : null);
         OfferMessage saved = messageRepository.saveAndFlush(message);
         log.info("Offer message stored for offer ID: {} by user ID: {}", offerId, userId);
         logger.info("Offer message stored for offer ID: %d by user ID: %d".formatted(offerId, userId));
-        return toDto(saved);
+        return toDto(saved, replyTo);
     }
 
     private Offer loadPartyOffer(Long offerId, Long userId) {
@@ -136,7 +148,30 @@ public class OfferMessageService {
         return offer;
     }
 
+    private List<OfferMessageResponseDTO> toDtos(List<OfferMessage> messages) {
+        Set<Long> replyIds = messages.stream()
+                .map(OfferMessage::getReplyToMessageId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+        Map<Long, OfferMessage> targets = replyIds.isEmpty()
+                ? Map.of()
+                : messageRepository.findAllById(replyIds).stream()
+                        .collect(Collectors.toMap(OfferMessage::getId, Function.identity()));
+        return messages.stream()
+                .map(message -> toDto(
+                        message,
+                        message.getReplyToMessageId() == null ? null : targets.get(message.getReplyToMessageId())))
+                .toList();
+    }
+
     private OfferMessageResponseDTO toDto(OfferMessage message) {
+        OfferMessage replyTo = message.getReplyToMessageId() == null
+                ? null
+                : messageRepository.findById(message.getReplyToMessageId()).orElse(null);
+        return toDto(message, replyTo);
+    }
+
+    private OfferMessageResponseDTO toDto(OfferMessage message, OfferMessage replyTo) {
         return OfferMessageResponseDTO.builder()
                 .messageId(message.getId())
                 .offerId(message.getOffer().getId())
@@ -144,7 +179,7 @@ public class OfferMessageService {
                 .body(message.getBody())
                 .createdAt(message.getCreatedAt())
                 .clientMessageId(message.getClientMessageId())
-                .replyTo(toReplyPreview(message.getReplyTo()))
+                .replyTo(toReplyPreview(replyTo))
                 .build();
     }
 
