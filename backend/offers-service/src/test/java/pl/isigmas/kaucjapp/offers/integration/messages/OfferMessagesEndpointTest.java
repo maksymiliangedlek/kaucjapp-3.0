@@ -176,6 +176,78 @@ public class OfferMessagesEndpointTest extends BaseIntegrationTest {
     }
 
     @Test
+    void listMessages_withReplies_worksWithoutRuntimeProxies() throws Exception {
+        Long creatorId = 79001L;
+        Long collectorId = 79002L;
+        Long offerId = reserveOffer(creatorId, collectorId);
+        long firstId = postMessage(offerId, collectorId, "first", null);
+        long secondId = postReply(offerId, creatorId, "second", firstId);
+        postReply(offerId, collectorId, "third", secondId);
+
+        mockMvc.perform(get("/api/offer/" + offerId + "/messages")
+                        .header("X-User-Id", creatorId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(3))
+                .andExpect(jsonPath("$[1].reply_to.message_id").value(firstId))
+                .andExpect(jsonPath("$[2].reply_to.message_id").value(secondId))
+                .andExpect(jsonPath("$[2].reply_to.body").value("second"));
+    }
+
+    @Test
+    void listMessages_afterUnreserve_creatorSeesEmptyChatAndOldCollectorIsForbidden() throws Exception {
+        Long creatorId = 80001L;
+        Long collectorId = 80002L;
+        Long offerId = reserveOffer(creatorId, collectorId);
+        postMessage(offerId, collectorId, "see you soon", null);
+
+        mockMvc.perform(post("/api/offer/" + offerId + "/status/OPEN")
+                        .header("X-User-Id", collectorId))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(get("/api/offer/" + offerId + "/messages")
+                        .header("X-User-Id", creatorId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(0));
+
+        mockMvc.perform(get("/api/offer/" + offerId + "/messages")
+                        .header("X-User-Id", collectorId))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.error_code").value("OFFER_007"));
+    }
+
+    @Test
+    void listMessages_afterReReservation_newCollectorSeesOnlyOwnChat() throws Exception {
+        Long creatorId = 81001L;
+        Long firstCollectorId = 81002L;
+        Long secondCollectorId = 81003L;
+        Long offerId = reserveOffer(creatorId, firstCollectorId);
+        long oldMessageId = postMessage(offerId, firstCollectorId, "old chat", null);
+
+        mockMvc.perform(post("/api/offer/" + offerId + "/status/OPEN")
+                        .header("X-User-Id", firstCollectorId))
+                .andExpect(status().isOk());
+        mockMvc.perform(post("/api/offer/" + offerId + "/status/RESERVED")
+                        .header("X-User-Id", secondCollectorId))
+                .andExpect(status().isOk());
+        postMessage(offerId, secondCollectorId, "new chat", null);
+
+        mockMvc.perform(get("/api/offer/" + offerId + "/messages")
+                        .header("X-User-Id", creatorId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].body").value("new chat"));
+
+        mockMvc.perform(post("/api/offer/" + offerId + "/messages")
+                        .header("X-User-Id", creatorId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                { "body": "replying to old", "reply_to_message_id": %d }
+                                """.formatted(oldMessageId)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error_code").value("OFFER_003"));
+    }
+
+    @Test
     void postMessage_withReplyToOtherOffer_returns400() throws Exception {
         Long creatorId = 78001L;
         Long collectorId = 78002L;
@@ -197,6 +269,20 @@ public class OfferMessagesEndpointTest extends BaseIntegrationTest {
                                 """.formatted(foreignMessageId)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error_code").value("OFFER_003"));
+    }
+
+    private long postReply(Long offerId, Long userId, String body, long replyToId) throws Exception {
+        String response = mockMvc.perform(post("/api/offer/" + offerId + "/messages")
+                        .header("X-User-Id", userId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                { "body": "%s", "reply_to_message_id": %d }
+                                """.formatted(body, replyToId)))
+                .andExpect(status().isCreated())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+        return objectMapper.readTree(response).get("message_id").asLong();
     }
 
     private long postMessage(Long offerId, Long userId, String body, UUID clientMessageId) throws Exception {

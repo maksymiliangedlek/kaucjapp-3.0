@@ -14,7 +14,8 @@ public interface OfferMessageRepository extends JpaRepository<OfferMessage, Long
 
     Optional<OfferMessage> findByOffer_IdAndClientMessageId(Long offerId, UUID clientMessageId);
 
-    List<OfferMessage> findByOffer_IdOrderByIdDesc(Long offerId, Pageable pageable);
+    List<OfferMessage> findByOffer_IdAndCollectorIdOrderByIdDesc(Long offerId, Long collectorId, Pageable pageable);
 
-    List<OfferMessage> findByOffer_IdAndIdGreaterThanOrderByIdAsc(Long offerId, Long after, Pageable pageable);
+    List<OfferMessage> findByOffer_IdAndCollectorIdAndIdGreaterThanOrderByIdAsc(
+            Long offerId, Long collectorId, Long after, Pageable pageable);
 }

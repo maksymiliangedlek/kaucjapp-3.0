@@ -22,7 +22,7 @@ import java.util.UUID;
 @Getter
 @Setter
 @NoArgsConstructor
-@ToString(exclude = {"offer", "replyTo"})
+@ToString(exclude = "offer")
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class OfferMessage {
 
@@ -32,7 +32,7 @@ public class OfferMessage {
     @EqualsAndHashCode.Include
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @ManyToOne(optional = false)
     @JoinColumn(name = "offer_id", nullable = false)
     private Offer offer;
 
@@ -49,7 +49,10 @@ public class OfferMessage {
     @Column(name = "client_message_id")
     private UUID clientMessageId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "reply_to_message_id")
-    private OfferMessage replyTo;
+    @Column(name = "reply_to_message_id")
+    private Long replyToMessageId;
+
+    /** Collector of the reservation this message belongs to; a new reservation starts a new chat. */
+    @Column(name = "collector_id")
+    private Long collectorId;
 }

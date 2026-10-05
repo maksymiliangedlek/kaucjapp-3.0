@@ -159,6 +159,9 @@ export default function OfferChatScreen({ offerId }: OfferChatScreenProps) {
   }
 
   const canSend = WRITABLE_STATUSES.includes(offer.status);
+  const isChatEnded =
+    messagesQuery.error instanceof ApiError &&
+    messagesQuery.error.errorCode === "OFFER_007";
   const trimmedDraft = draft.trim();
 
   const handleSend = () => {
@@ -210,6 +213,8 @@ export default function OfferChatScreen({ offerId }: OfferChatScreenProps) {
       <View style={styles.thread}>
         {messagesQuery.isLoading ? (
           <LoadingState title="Ładowanie wiadomości" />
+        ) : isChatEnded ? (
+          <EmptyState title="Rezerwacja się zakończyła, czat jest niedostępny" />
         ) : messagesQuery.isError && !messagesQuery.data ? (
           <ErrorState
             title="Nie udało się załadować wiadomości"
