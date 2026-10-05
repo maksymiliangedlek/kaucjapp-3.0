@@ -5,6 +5,7 @@ import Constants from "expo-constants";
 
 import { DepositMachine, MapFilter, Offer, SelectedMapItem } from "@/src/types";
 import { OfferMarker } from "./markers/offer-marker";
+import { ReservedOfferMarker } from "./markers/reserved-offer-marker";
 import { MachineMarker } from "./markers/machine-marker";
 import MapFetchIndicator from "./overlay/map-fetch-indicator";
 import MapFilterControl from "./overlay/map-filter";
@@ -12,6 +13,7 @@ import MapFilterControl from "./overlay/map-filter";
 interface MapViewProps {
   initialRegion: Region;
   offers: Offer[];
+  reservedOffers: Offer[];
   machines: DepositMachine[];
   isFetching: boolean;
   selectedItem: SelectedMapItem | null;
@@ -32,6 +34,7 @@ const SELECTION_ANIMATION_MS = 500;
 function MapSurface({
   initialRegion,
   offers,
+  reservedOffers,
   machines,
   isFetching,
   selectedItem,
@@ -73,6 +76,14 @@ function MapSurface({
         {offers.map((offer) => (
           <OfferMarker
             key={`offer-${offer.offerId}`}
+            offer={offer}
+            onPress={onOfferPress}
+          />
+        ))}
+
+        {reservedOffers.map((offer) => (
+          <ReservedOfferMarker
+            key={`reserved-${offer.offerId}`}
             offer={offer}
             onPress={onOfferPress}
           />

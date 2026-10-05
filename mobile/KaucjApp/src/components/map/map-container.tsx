@@ -17,6 +17,7 @@ export default function MapContainer() {
     isLocationLoading,
     onRegionChange,
     offers,
+    reservedOffers,
     machines,
     isFetching,
     errors,
@@ -32,6 +33,7 @@ export default function MapContainer() {
       <MapSurface
         initialRegion={initialRegion}
         offers={offers}
+        reservedOffers={reservedOffers}
         machines={machines}
         isFetching={isFetching}
         selectedItem={selection.selectedItem}

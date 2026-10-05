@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { QueryKey, useQueryClient } from "@tanstack/react-query";
 
 import { machineKeys } from "@/src/api/hooks/use-machines";
-import { offerKeys } from "@/src/api/hooks/use-offer";
+import { offerKeys, useMyReservedOffers } from "@/src/api/hooks/use-offer";
 import { DepositMachine, MapFilter, Offer } from "@/src/types";
 
 const getOfferId = (offer: Offer) => offer.offerId;
@@ -16,7 +16,7 @@ export function useMapMarkers(filter: MapFilter) {
   const showOffers = filter === "all" || filter === "offers";
   const showMachines = filter === "all" || filter === "machines";
 
-  const offers = useMergedSearchResults<Offer>(
+  const searchedOffers = useMergedSearchResults<Offer>(
     offersPrefix,
     getOfferId,
     showOffers,
@@ -27,7 +27,24 @@ export function useMapMarkers(filter: MapFilter) {
     showMachines,
   );
 
-  return { offers, machines };
+  // Active reservations are not in the OPEN-only map search, so they come from
+  // the same query as the "Moje rezerwacje" tab.
+  const { data: myReservedOffers } = useMyReservedOffers();
+  const reservedOffers = useMemo(() => {
+    if (!showOffers) return [];
+    return myReservedOffers ?? [];
+  }, [myReservedOffers, showOffers]);
+
+  const reservedIds = useMemo(
+    () => new Set(reservedOffers.map((offer) => offer.offerId)),
+    [reservedOffers],
+  );
+  const offers = useMemo(
+    () => searchedOffers.filter((offer) => !reservedIds.has(offer.offerId)),
+    [reservedIds, searchedOffers],
+  );
+
+  return { offers, reservedOffers, machines };
 }
 
 // Merging data straight from the query cache makes react-query the single source of truth:
