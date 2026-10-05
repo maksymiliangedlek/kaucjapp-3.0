@@ -13,6 +13,7 @@ import EmptyState from "@/src/components/states/empty-state";
 import { useAuth } from "@/src/auth/use-auth";
 import { colors, spacing } from "@/src/theme";
 import WarningBanner from "../warning-banner";
+import BookingDetailsContent from "@/src/components/profile/reserved-offers/booking-details-content";
 
 interface OfferDetailsProps {
   offerId: number;
@@ -33,6 +34,22 @@ export default function OfferDetails({ offerId }: OfferDetailsProps) {
     offer.status === "COMPLETED" ||
     offer.status === "CANCELED";
   const isTheUserOwner = offer.creatorId === user?.userId;
+  const isMyReservation =
+    offer.collectorId === user?.userId && offer.status !== "OPEN";
+
+  if (isMyReservation) {
+    return (
+      <View style={styles.container}>
+        <DetailHeader
+          title="Twoja rezerwacja"
+          subtitle={formatDate(offer.reservedAt ?? offer.createdAt)}
+          rightSlot={<StatusBadge status={offer.status} />}
+        />
+        <BookingDetailsContent offer={offer} basePath="/home" />
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <DetailHeader
