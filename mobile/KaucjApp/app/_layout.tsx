@@ -5,6 +5,7 @@ import { useAuth } from "@/src/auth/use-auth";
 import { useAppBootstrap } from "@/src/auth/auth-storage-init";
 import { useAppStore } from "@/src/state/app-store";
 import OfflineBanner from "@/src/components/ui/offline-banner";
+import { usePushNotifications } from "@/src/notifications/use-push-notifications";
 
 // COMENTED OUT FOR NOW, EXPO GO DOES NOT SUPPORT REACT QUERY PERSISTENCE, BUT THIS IS HOW IT WOULD LOOK LIKE
 // import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
@@ -14,6 +15,7 @@ function RootLayoutAuth() {
   const { isAuthenticated } = useAuth();
   const hasSeenOnboarding = useAppStore((state) => state.hasSeenOnboarding);
   const { isReady } = useAppBootstrap();
+  usePushNotifications(isAuthenticated);
 
   if (!isReady) {
     return null; // The native splash screen is covering the app at this point

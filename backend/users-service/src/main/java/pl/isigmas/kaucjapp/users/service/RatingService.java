@@ -2,6 +2,7 @@ package pl.isigmas.kaucjapp.users.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pl.isigmas.kaucjapp.common.logger.Logger;
@@ -9,6 +10,7 @@ import pl.isigmas.kaucjapp.users.DTO.RatingDTO;
 import pl.isigmas.kaucjapp.users.DTO.ReviewRequestDTO;
 import pl.isigmas.kaucjapp.users.DTO.ReviewResponseDTO;
 import pl.isigmas.kaucjapp.users.DTO.UpdateReviewDTO;
+import pl.isigmas.kaucjapp.users.DTO.UserReviewCreatedEventDTO;
 import pl.isigmas.kaucjapp.users.exception.*;
 import pl.isigmas.kaucjapp.users.model.Rating;
 import pl.isigmas.kaucjapp.users.model.User;
@@ -30,6 +32,7 @@ public class RatingService {
     private final RatingRepository ratingRepository;
     private final UserReviewRepository userReviewRepository;
     private final UserRepository userRepository;
+    private final ApplicationEventPublisher eventPublisher;
     private final Logger logger;
 
     @Transactional
@@ -81,6 +84,13 @@ public class RatingService {
                 "Review added for user ID: %d by reviewer ID: %d (score %s, offer %d)"
                         .formatted(revieweeId, reviewerId, request.getScore(), request.getOfferId())
         );
+        eventPublisher.publishEvent(UserReviewCreatedEventDTO.builder()
+                .reviewId(review.getId())
+                .revieweeId(revieweeId)
+                .reviewerId(reviewerId)
+                .offerId(request.getOfferId())
+                .score(request.getScore())
+                .build());
     }
 
     @Transactional(readOnly = true)

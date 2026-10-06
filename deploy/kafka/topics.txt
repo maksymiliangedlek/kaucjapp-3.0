@@ -8,3 +8,7 @@ users.sync
 users.delete.command
 users.deleted.event
 offers.completed
+offers.reserved
+offers.confirmed
+offers.message.created
+users.review.created

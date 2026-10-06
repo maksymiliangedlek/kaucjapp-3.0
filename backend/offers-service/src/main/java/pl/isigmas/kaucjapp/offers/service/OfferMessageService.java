@@ -2,11 +2,13 @@ package pl.isigmas.kaucjapp.offers.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pl.isigmas.kaucjapp.common.logger.Logger;
 import pl.isigmas.kaucjapp.offers.DTO.CreateOfferMessageDTO;
+import pl.isigmas.kaucjapp.offers.DTO.OfferMessageCreatedEventDTO;
 import pl.isigmas.kaucjapp.offers.DTO.OfferMessageReplyPreviewDTO;
 import pl.isigmas.kaucjapp.offers.DTO.OfferMessageResponseDTO;
 import pl.isigmas.kaucjapp.offers.exception.OfferForbiddenException;
@@ -37,6 +39,7 @@ import java.util.stream.Collectors;
 public class OfferMessageService {
 
     private static final int MAX_LIMIT = 100;
+    private static final int PREVIEW_LENGTH = 100;
     private static final Set<OfferStatus> WRITABLE_STATUSES = EnumSet.of(
             OfferStatus.RESERVED,
             OfferStatus.PENDING_CONFIRMATION,
@@ -45,6 +48,7 @@ public class OfferMessageService {
 
     private final OfferRepository offerRepository;
     private final OfferMessageRepository messageRepository;
+    private final ApplicationEventPublisher eventPublisher;
     private final Logger logger;
 
     @Transactional(readOnly = true)
@@ -131,6 +135,14 @@ public class OfferMessageService {
         OfferMessage saved = messageRepository.saveAndFlush(message);
         log.info("Offer message stored for offer ID: {} by user ID: {}", offerId, userId);
         logger.info("Offer message stored for offer ID: %d by user ID: %d".formatted(offerId, userId));
+        eventPublisher.publishEvent(OfferMessageCreatedEventDTO.builder()
+                .offerId(offerId)
+                .creatorId(offer.getCreatorId())
+                .messageId(saved.getId())
+                .senderId(userId)
+                .recipientId(Objects.equals(userId, offer.getCreatorId()) ? offer.getCollectorId() : offer.getCreatorId())
+                .preview(body.length() > PREVIEW_LENGTH ? body.substring(0, PREVIEW_LENGTH) + "…" : body)
+                .build());
         return toDto(saved, replyTo);
     }
 

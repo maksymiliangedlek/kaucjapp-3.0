@@ -7,8 +7,11 @@ import pl.isigmas.kaucjapp.common.logger.LogLevel;
 import pl.isigmas.kaucjapp.common.logger.SystemLog;
 import pl.isigmas.kaucjapp.offers.DTO.CreateOfferMessageDTO;
 import pl.isigmas.kaucjapp.offers.DTO.OfferCompletedEventDTO;
+import pl.isigmas.kaucjapp.offers.DTO.OfferConfirmedEventDTO;
+import pl.isigmas.kaucjapp.offers.DTO.OfferMessageCreatedEventDTO;
 import pl.isigmas.kaucjapp.offers.DTO.OfferMessageReplyPreviewDTO;
 import pl.isigmas.kaucjapp.offers.DTO.OfferMessageResponseDTO;
+import pl.isigmas.kaucjapp.offers.DTO.OfferReservedEventDTO;
 
 import java.util.UUID;
 
@@ -34,6 +37,9 @@ public class NativeRuntimeHints implements RuntimeHintsRegistrar {
 
         for (Class<?> dto : new Class<?>[]{
                 OfferCompletedEventDTO.class,
+                OfferReservedEventDTO.class,
+                OfferConfirmedEventDTO.class,
+                OfferMessageCreatedEventDTO.class,
                 CreateOfferMessageDTO.class,
                 OfferMessageResponseDTO.class,
                 OfferMessageReplyPreviewDTO.class

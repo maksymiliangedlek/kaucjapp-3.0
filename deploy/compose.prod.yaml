@@ -233,6 +233,7 @@ services:
       <<: *service-env
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/notification_db
       MAIL_PASSWORD: ${MAIL_PASSWORD:?}
+      EXPO_ACCESS_TOKEN: ${EXPO_ACCESS_TOKEN:-}
       BASE_URL: https://${API_DOMAIN:?}
     healthcheck:
       <<: *wget-check

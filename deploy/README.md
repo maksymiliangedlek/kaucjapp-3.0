@@ -50,7 +50,7 @@ Settings → Environments → create `production` (optionally with required revi
 |-----------|---------|
 | `DEPLOY_HOST` (server IP), `DEPLOY_USER` (optional, default `deploy`) | `DEPLOY_SSH_KEY` (content of `deploy_key`), `DEPLOY_KNOWN_HOSTS` |
 | `API_DOMAIN`, `ACME_EMAIL` | `DB_PASSWORD`, `REDIS_PASSWORD`, `JWT_SECRET`, `PASSWORD_SALT`, `IT_SECRET` |
-| `DB_USER`, `ADMIN_USERNAME`, `ADMIN_EMAIL` | `ADMIN_PASSWORD`, `MAIL_PASSWORD` |
+| `DB_USER`, `ADMIN_USERNAME`, `ADMIN_EMAIL` | `ADMIN_PASSWORD`, `MAIL_PASSWORD`, `EXPO_ACCESS_TOKEN` (optional) |
 | `STORAGE_S3_ENDPOINT`, `STORAGE_S3_BUCKET`, `STORAGE_S3_PUBLIC_BASE_URL` | `STORAGE_S3_ACCESS_KEY`, `STORAGE_S3_SECRET_KEY` |
 | `BACKUP_S3_ENDPOINT`, `BACKUP_S3_BUCKET` | `BACKUP_S3_ACCESS_KEY`, `BACKUP_S3_SECRET_KEY`, `BACKUP_HEALTHCHECK_URL` |
 
@@ -69,6 +69,19 @@ Everything works before the `kaucjapp.pl` DNS is available:
 * `STORAGE_S3_PUBLIC_BASE_URL`: the bucket's public development URL (R2 → bucket → Settings → Public Development URL → Enable),
   e.g. `https://pub-<id>.r2.dev`. It is rate limited by Cloudflare, so switch to the custom domain before a public release.
 * E-mail: Resend only needs the API key (`MAIL_PASSWORD`); the sender domain is already verified, no DNS change is required.
+
+### Push notifications (one-time setup)
+Push notifications (offer reserved/confirmed, new chat message, new review) are sent by `notification-service` through the
+[Expo Push API](https://docs.expo.dev/push-notifications/sending-notifications/); no Apple/Google keys are stored on the server.
+
+1. **iOS (APNs):** upload an APNs key to EAS once with `eas credentials` (iOS -> Push Notifications). Already done for `com.km44.kaucjapp`.
+2. **Android (FCM):** not set up yet, so the app only registers push tokens on iOS. To add it: create a Firebase project, register
+   `com.km44.kaucjapp`, upload the FCM V1 service account key with `eas credentials` (Android), then allow Android in
+   `mobile/KaucjApp/src/notifications/push-registration.ts`.
+3. **`EXPO_ACCESS_TOKEN` (recommended):** expo.dev -> Account settings -> Access tokens -> create a token, enable
+   "Enhanced security for push notifications" for the project, then `gh secret set EXPO_ACCESS_TOKEN --env production`.
+   Without it pushes still work, but anyone who learns a device token could send notifications to it.
+4. Build a new dev client / production build after adding `expo-notifications` (native change); push does not work in Expo Go or on the iOS simulator.
 
 Switching later: set the new `API_DOMAIN` / `STORAGE_S3_PUBLIC_BASE_URL`, run Deploy, then rewrite the stored picture URLs
 (otherwise old pictures can no longer be deleted by users):

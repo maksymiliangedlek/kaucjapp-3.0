@@ -2,6 +2,7 @@ package pl.isigmas.kaucjapp.offers.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pl.isigmas.kaucjapp.common.logger.Logger;
@@ -38,6 +39,7 @@ public class OfferService {
     private final ComplaintRepository complaintRepository;
     private final GeoValidationService geoValidationService;
     private final OfferKafkaPublisher offerKafkaPublisher;
+    private final ApplicationEventPublisher eventPublisher;
     private final Logger logger;
 
     @Transactional
@@ -373,6 +375,12 @@ public class OfferService {
         if (targetStatus == OfferStatus.RESERVED) {
             log.info("Offer reserved, ID: {} by collector ID: {}", offerId, userId);
             logger.important("Offer reserved, ID: %d by collector ID: %d".formatted(offerId, userId));
+            eventPublisher.publishEvent(OfferReservedEventDTO.builder()
+                    .offerId(offerId)
+                    .creatorId(offer.getCreatorId())
+                    .collectorId(userId)
+                    .totalQuantity(offer.getItems().stream().mapToInt(OfferItem::getQuantity).sum())
+                    .build());
         } else if (targetStatus == OfferStatus.CANCELED) {
             log.info("Offer canceled, ID: {} by creator ID: {}", offerId, userId);
             logger.important("Offer canceled, ID: %d by creator ID: %d".formatted(offerId, userId));
@@ -397,9 +405,12 @@ public class OfferService {
             throw new OfferForbiddenException("You can only confirm RESERVED or PENDING offers");
         }
 
+        boolean alreadyConfirmed;
         if (currentUserId.equals(offer.getCreatorId())) {
+            alreadyConfirmed = Boolean.TRUE.equals(offer.getCreatorConfirmed());
             offer.setCreatorConfirmed(true);
         } else if (currentUserId.equals(offer.getCollectorId())) {
+            alreadyConfirmed = Boolean.TRUE.equals(offer.getCollectorConfirmed());
             offer.setCollectorConfirmed(true);
         } else {
             log.warn("Confirm forbidden for offer ID: {} by user ID: {}", offerId, currentUserId);
@@ -407,11 +418,23 @@ public class OfferService {
             throw new OfferForbiddenException("You are not part of this offer");
         }
 
-        if (Boolean.TRUE.equals(offer.getCreatorConfirmed()) && Boolean.TRUE.equals(offer.getCollectorConfirmed())) {
+        boolean completed = Boolean.TRUE.equals(offer.getCreatorConfirmed())
+                && Boolean.TRUE.equals(offer.getCollectorConfirmed());
+        if (completed) {
             completeOfferAndPublish(offer, Instant.now());
         } else if (offer.getStatus() == OfferStatus.RESERVED) {
             offer.setStatus(OfferStatus.PENDING_CONFIRMATION);
             offer.setConfirmationDeadline(Instant.now().plus(Duration.ofHours(24)));
+        }
+
+        if (!alreadyConfirmed) {
+            eventPublisher.publishEvent(OfferConfirmedEventDTO.builder()
+                    .offerId(offerId)
+                    .creatorId(offer.getCreatorId())
+                    .collectorId(offer.getCollectorId())
+                    .confirmedById(currentUserId)
+                    .completed(completed)
+                    .build());
         }
 
         offerRepository.save(offer);

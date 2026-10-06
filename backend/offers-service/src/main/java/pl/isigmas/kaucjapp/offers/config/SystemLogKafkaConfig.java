@@ -11,12 +11,10 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
 import pl.isigmas.kaucjapp.common.kafka.KafkaProducerConfigSupport;
 import pl.isigmas.kaucjapp.common.logger.SystemLog;
-import pl.isigmas.kaucjapp.offers.DTO.OfferCompletedEventDTO;
-
 import java.util.Map;
 
 /**
- * Kafka producers: {@code @Primary} template for domain events (e.g. {@code offers.completed}),
+ * Kafka producers: {@code @Primary} template for domain events (e.g. {@code offers.completed}, {@code offers.reserved}),
  * separate template for {@link pl.isigmas.kaucjapp.common.logger.Logger} (topic {@code system-logs}).
  */
 @Configuration
@@ -31,7 +29,7 @@ public class SystemLogKafkaConfig {
 
     @Bean
     @Primary
-    public ProducerFactory<String, OfferCompletedEventDTO> offerEventProducerFactory() {
+    public ProducerFactory<String, Object> offerEventProducerFactory() {
         return new DefaultKafkaProducerFactory<>(
                 KafkaProducerConfigSupport.producerProps(
                         baseProducerProperties,
@@ -43,8 +41,8 @@ public class SystemLogKafkaConfig {
 
     @Bean
     @Primary
-    public KafkaTemplate<String, OfferCompletedEventDTO> kafkaTemplate(
-            ProducerFactory<String, OfferCompletedEventDTO> offerEventProducerFactory) {
+    public KafkaTemplate<String, Object> kafkaTemplate(
+            ProducerFactory<String, Object> offerEventProducerFactory) {
         return new KafkaTemplate<>(offerEventProducerFactory);
     }
 
