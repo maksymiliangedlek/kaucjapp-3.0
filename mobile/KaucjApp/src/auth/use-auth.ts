@@ -7,6 +7,7 @@ import { tokenStorage } from "./secure-storage";
 import { ApiError, parseAuthError } from "@/src/api/api-error";
 import { SignInValues, SignUpValues } from "../validation";
 import { User } from "@/src/types/user";
+import { unregisterFromPushNotifications } from "@/src/notifications/push-registration";
 
 export const useAuth = () => {
   const user = useAuthStore((state) => state.user);
@@ -93,6 +94,8 @@ export const useAuth = () => {
 
   const signOut = useMutation<void, ApiError, void>({
     mutationFn: async () => {
+      // Stop pushes to this device while the session is still valid.
+      await unregisterFromPushNotifications();
       try {
         const refreshToken = await tokenStorage.getRefreshToken();
         await apiClient.post("/auth/logout", refreshToken, {

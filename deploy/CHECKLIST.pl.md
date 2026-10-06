@@ -79,6 +79,7 @@ Domeny nie trzeba kupować: `kaucjapp.pl` przejmiesz od kolegi. Do tego czasu u�
   gh secret set BACKUP_S3_ACCESS_KEY "${E[@]}"    # ten sam Access Key ID
   gh secret set BACKUP_S3_SECRET_KEY "${E[@]}"    # ten sam Secret Access Key
   gh secret set BACKUP_HEALTHCHECK_URL "${E[@]}"  # ping URL z healthchecks.io
+  gh secret set EXPO_ACCESS_TOKEN "${E[@]}"       # opcjonalnie: token Expo (expo.dev -> Access tokens), zabezpiecza wysyłkę push
   ```
   Kontrola: `gh variable list "${E[@]}"` (11 zmiennych) i `gh secret list "${E[@]}"` (14 sekretów).
   Wartości nie mogą zawierać spacji, `$`, `#`, cudzysłowów ani backslasha (workflow to sprawdza).

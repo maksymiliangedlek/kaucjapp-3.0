@@ -6,6 +6,9 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
+import pl.isigmas.kaucjapp.offers.DTO.OfferConfirmedEventDTO;
+import pl.isigmas.kaucjapp.offers.DTO.OfferReservedEventDTO;
 import pl.isigmas.kaucjapp.offers.DTO.OfferCompletedEventDTO;
 import pl.isigmas.kaucjapp.offers.model.BottleType;
 import pl.isigmas.kaucjapp.offers.model.Offer;
@@ -46,6 +49,9 @@ class OfferServiceKafkaUnitTest {
 
     @Mock
     private OfferKafkaPublisher offerKafkaPublisher;
+
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
 
     @Mock
     private Logger logger;
@@ -146,5 +152,50 @@ class OfferServiceKafkaUnitTest {
         verify(offerKafkaPublisher).sendOfferCompleted(captor.capture());
         assertThat(captor.getValue().getPlasticQuantity()).isEqualTo(5);
         assertThat(captor.getValue().getCanQuantity()).isZero();
+    }
+
+    @Test
+    void changeStatus_toReserved_publishesOfferReservedEventForCreator() {
+        long offerId = 300L;
+        Offer offer = new Offer();
+        offer.setId(offerId);
+        offer.setCreatorId(10L);
+        offer.setStatus(OfferStatus.OPEN);
+        BottleType plasticType = new BottleType();
+        plasticType.setId(1L);
+        plasticType.setName("plastic");
+        OfferItem item = new OfferItem();
+        item.setRelations(offer, plasticType);
+        item.setQuantity(4);
+        item.setUnitPrice(BigDecimal.valueOf(0.5));
+        offer.addItem(item);
+        when(offerRepository.findById(offerId)).thenReturn(Optional.of(offer));
+
+        offerService.changeStatus(offerId, 20L, "RESERVED");
+
+        ArgumentCaptor<OfferReservedEventDTO> captor = ArgumentCaptor.forClass(OfferReservedEventDTO.class);
+        verify(eventPublisher).publishEvent(captor.capture());
+        assertThat(captor.getValue().getCreatorId()).isEqualTo(10L);
+        assertThat(captor.getValue().getCollectorId()).isEqualTo(20L);
+        assertThat(captor.getValue().getTotalQuantity()).isEqualTo(4);
+    }
+
+    @Test
+    void confirmOffer_publishesConfirmedEventOnlyOncePerParty() {
+        long offerId = 400L;
+        Offer offer = new Offer();
+        offer.setId(offerId);
+        offer.setCreatorId(10L);
+        offer.setCollectorId(20L);
+        offer.setStatus(OfferStatus.RESERVED);
+        when(offerRepository.findByIdWithItems(offerId)).thenReturn(Optional.of(offer));
+
+        offerService.confirmOffer(offerId, 10L);
+        offerService.confirmOffer(offerId, 10L);
+
+        ArgumentCaptor<OfferConfirmedEventDTO> captor = ArgumentCaptor.forClass(OfferConfirmedEventDTO.class);
+        verify(eventPublisher, times(1)).publishEvent(captor.capture());
+        assertThat(captor.getValue().getConfirmedById()).isEqualTo(10L);
+        assertThat(captor.getValue().isCompleted()).isFalse();
     }
 }

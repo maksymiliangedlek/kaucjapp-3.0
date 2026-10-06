@@ -12,7 +12,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
-import pl.isigmas.kaucjapp.offers.DTO.OfferCompletedEventDTO;
 import pl.isigmas.kaucjapp.offers.repository.BottleTypeRepository;
 import pl.isigmas.kaucjapp.offers.repository.OfferRepository;
 
@@ -29,7 +28,7 @@ import static org.mockito.Mockito.when;
 public abstract class BaseIntegrationTest {
 
     @MockitoBean
-    private KafkaTemplate<String, OfferCompletedEventDTO> kafkaTemplate;
+    private KafkaTemplate<String, Object> kafkaTemplate;
 
     protected MockMvc mockMvc;
 
@@ -50,7 +49,7 @@ public abstract class BaseIntegrationTest {
 
     @BeforeEach
     void setUpBase() {
-        when(kafkaTemplate.send(anyString(), anyString(), any(OfferCompletedEventDTO.class)))
+        when(kafkaTemplate.send(anyString(), anyString(), any()))
                 .thenReturn(CompletableFuture.completedFuture(null));
 
         this.mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();

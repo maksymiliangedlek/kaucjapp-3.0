@@ -6,6 +6,8 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
+import pl.isigmas.kaucjapp.users.DTO.UserReviewCreatedEventDTO;
 import pl.isigmas.kaucjapp.common.logger.Logger;
 import pl.isigmas.kaucjapp.users.DTO.RatingDTO;
 import pl.isigmas.kaucjapp.users.DTO.ReviewRequestDTO;
@@ -50,6 +52,9 @@ class RatingServiceTest {
     private UserRepository userRepository;
 
     @Mock
+    private ApplicationEventPublisher eventPublisher;
+
+    @Mock
     private Logger logger;
 
     @InjectMocks
@@ -83,6 +88,12 @@ class RatingServiceTest {
 
         assertThat(rating.getFeedbackCount()).isEqualTo(1);
         assertThat(rating.getAvgScore()).isEqualByComparingTo("4.00");
+
+        ArgumentCaptor<UserReviewCreatedEventDTO> event = ArgumentCaptor.forClass(UserReviewCreatedEventDTO.class);
+        verify(eventPublisher).publishEvent(event.capture());
+        assertThat(event.getValue().getRevieweeId()).isEqualTo(revieweeId);
+        assertThat(event.getValue().getReviewerId()).isEqualTo(reviewerId);
+        assertThat(event.getValue().getScore()).isEqualByComparingTo("4");
     }
 
     @Test

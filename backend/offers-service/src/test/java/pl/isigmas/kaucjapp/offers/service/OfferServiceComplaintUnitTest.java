@@ -45,6 +45,9 @@ class OfferServiceComplaintUnitTest {
     private OfferKafkaPublisher offerKafkaPublisher;
 
     @Mock
+    private org.springframework.context.ApplicationEventPublisher eventPublisher;
+
+    @Mock
     private Logger logger;
 
     @InjectMocks
