@@ -21,7 +21,10 @@
     },
     "production": {
       "autoIncrement": false,
-      "channel": "production"
+      "channel": "production",
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://kaucjapp.duckdns.org/api"
+      }
     }
   },
   "submit": {
