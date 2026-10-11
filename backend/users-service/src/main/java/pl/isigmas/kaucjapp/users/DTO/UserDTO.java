@@ -2,7 +2,6 @@ package pl.isigmas.kaucjapp.users.DTO;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
@@ -32,10 +31,11 @@ public class UserDTO {
     @NotBlank(message = "Last name cannot be blank")
     private String lastName;
 
-    @NotBlank(message = "Phone number cannot be blank")
     @Pattern(regexp = "^[0-9]{9,15}$", message = "Phone number must consist of 9-15 digits")
     @JsonProperty("phone")
     private String phone;
+
+    private boolean sharePhoneOnReservation;
 
     @JsonProperty("profile_picture_url")
     private String profilePictureUrl;

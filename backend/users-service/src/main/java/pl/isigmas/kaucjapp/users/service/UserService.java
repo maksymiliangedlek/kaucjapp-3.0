@@ -59,8 +59,17 @@ public class UserService {
 
     @Transactional(readOnly = true)
     public UserDTO getUserById(Long id) {
+        return getUserById(id, true);
+    }
+
+    /**
+     * @param includePhone when true, always include phone (own profile);
+     *                     when false, include phone only if the user shares it on reservation.
+     */
+    @Transactional(readOnly = true)
+    public UserDTO getUserById(Long id, boolean includePhone) {
         return userRepository.findByIdWithAddresses(id)
-                .map(this::mapToDTO)
+                .map(user -> mapToDTO(user, includePhone))
                 .orElseThrow(() -> {
                     log.warn("User not found, ID: {}", id);
                     logger.warn("User not found, ID: %d".formatted(id));
@@ -89,7 +98,8 @@ public class UserService {
         user.setLastName(userDTO.getLastName());
         user.setEmail(userDTO.getEmail());
         user.setPhone(userDTO.getPhone());
-
+        user.setSharePhoneOnReservation(
+                userDTO.getSharePhoneOnReservation() == null || userDTO.getSharePhoneOnReservation());
 
         userRepository.save(user);
 
@@ -118,6 +128,9 @@ public class UserService {
 
         if (dto.getFirstName() != null) existingUser.setFirstName(dto.getFirstName());
         if (dto.getLastName() != null) existingUser.setLastName(dto.getLastName());
+        if (dto.getSharePhoneOnReservation() != null) {
+            existingUser.setSharePhoneOnReservation(dto.getSharePhoneOnReservation());
+        }
         if (dto.getAddresses() != null) {
             new ArrayList<>(existingUser.getAddresses()).forEach(existingUser::removeAddress);
             userRepository.flush();
@@ -147,7 +160,7 @@ public class UserService {
         user.setProfilePictureUrl(imageUrl);
         log.info("Profile picture updated for user ID: {}", userId);
         logger.important("Profile picture updated for user ID: %d".formatted(userId));
-        return mapToDTO(user);
+        return mapToDTO(user, true);
     }
 
     @Transactional
@@ -161,7 +174,7 @@ public class UserService {
         user.setProfilePictureUrl(null);
         log.info("Profile picture cleared for user ID: {}", userId);
         logger.important("Profile picture cleared for user ID: %d".formatted(userId));
-        return mapToDTO(user);
+        return mapToDTO(user, true);
     }
 
     @Transactional
@@ -191,19 +204,22 @@ public class UserService {
         logger.important("User deleted, ID: %d".formatted(id));
     }
 
-    private UserDTO mapToDTO(User user) {
+    private UserDTO mapToDTO(User user, boolean includePhone) {
         List<UserAddressDTO> addressDTOs = user.getAddresses().stream()
                 .map(this::mapAddressToDTO)
                 .collect(Collectors.toList());
 
         UserStats userStats = loadUserStats(user.getId());
+        boolean sharePhone = user.isSharePhoneOnReservation();
+        String phone = (includePhone || sharePhone) ? user.getPhone() : null;
 
         return UserDTO.builder()
                 .id(user.getId())
                 .username(user.getUsername())
                 .firstName(user.getFirstName())
                 .lastName(user.getLastName())
-                .phone(user.getPhone())
+                .phone(phone)
+                .sharePhoneOnReservation(sharePhone)
                 .profilePictureUrl(user.getProfilePictureUrl())
                 .addresses(addressDTOs)
                 .createdAt(user.getTimeCreated())

@@ -46,7 +46,7 @@ public abstract class BaseIntegrationTest {
 
     public void postCreateUser(String jsonBody) throws Exception {
         JsonNode node = objectMapper.readTree(jsonBody);
-        CreateUserDTO user = CreateUserDTO.builder()
+        CreateUserDTO.CreateUserDTOBuilder builder = CreateUserDTO.builder()
                 .id(node.get("user_id").asLong())
                 .username(node.get("username").asText())
                 .firstName(node.has("first_name") ? node.get("first_name").asText()
@@ -54,9 +54,13 @@ public abstract class BaseIntegrationTest {
                 .lastName(node.has("last_name") ? node.get("last_name").asText()
                         : node.has("lastName") ? node.get("lastName").asText() : null)
                 .phone(node.has("phone") ? node.get("phone").asText() : null)
-                .email(node.get("email").asText())
-                .build();
-        usersKafkaListener.handleUserSync(objectMapper.writeValueAsString(user));
+                .email(node.get("email").asText());
+        if (node.has("share_phone_on_reservation")) {
+            builder.sharePhoneOnReservation(node.get("share_phone_on_reservation").asBoolean());
+        } else if (node.has("sharePhoneOnReservation")) {
+            builder.sharePhoneOnReservation(node.get("sharePhoneOnReservation").asBoolean());
+        }
+        usersKafkaListener.handleUserSync(objectMapper.writeValueAsString(builder.build()));
     }
 
     public void deleteUser(Long userId) {

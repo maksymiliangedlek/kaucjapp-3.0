@@ -37,6 +37,11 @@ public class CreateUserDTO {
     @JsonProperty("phone")
     private String phone;
 
+    /** When null, defaults to true (share phone on reservation). */
+    @JsonProperty("share_phone_on_reservation")
+    @JsonAlias({"sharePhoneOnReservation"})
+    private Boolean sharePhoneOnReservation;
+
     @NotBlank(message = "Email cannot be blank")
     @Email(message = "Invalid email format")
     private String email;
