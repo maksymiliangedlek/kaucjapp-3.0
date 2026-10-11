@@ -16,6 +16,7 @@ export const signUpSchema = z.object({
     .string()
     .trim()
     .regex(/^\d{9}$/, "Podaj 9-cyfrowy numer telefonu."),
+  sharePhoneOnReservation: z.boolean(),
   email: z.string().trim().email("Wprowadź poprawny adres email."),
   password: z
     .string()
@@ -39,7 +40,7 @@ export const SIGN_UP_STEPS: {
   { route: "/sign-up", fields: ["firstName", "lastName"] },
   { route: "/sign-up/email", fields: ["email"] },
   { route: "/sign-up/username", fields: ["userName"] },
-  { route: "/sign-up/phone", fields: ["phoneNumber"] },
+  { route: "/sign-up/phone", fields: ["phoneNumber", "sharePhoneOnReservation"] },
   { route: "/sign-up/password", fields: ["password"] },
   { route: "/sign-up/summary", fields: [] },
 ];

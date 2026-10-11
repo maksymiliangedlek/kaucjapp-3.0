@@ -59,6 +59,9 @@ export const useUpdateUser = () => {
       if (payload.lastName !== undefined) {
         updates.lastName = payload.lastName ?? "";
       }
+      if (payload.sharePhoneOnReservation !== undefined) {
+        updates.sharePhoneOnReservation = payload.sharePhoneOnReservation;
+      }
 
       useAuthStore.getState().patchUser(updates);
     },

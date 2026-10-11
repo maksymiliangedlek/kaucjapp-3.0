@@ -66,6 +66,13 @@ export default function ContactCard({
   }
 
   const handleCall = async () => {
+    if (user.sharePhoneOnReservation === false) {
+      Alert.alert(
+        "Numer ukryty",
+        `${user.firstName} nie udostępnia numeru telefonu. Skontaktuj się poprzez chat`,
+      );
+      return;
+    }
     const url = toTelUrl(user.phone);
     if (!url) {
       Alert.alert(

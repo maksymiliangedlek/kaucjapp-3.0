@@ -18,6 +18,7 @@ export default function SignUpLayout() {
       lastName: "",
       userName: "",
       phoneNumber: "",
+      sharePhoneOnReservation: true,
       email: "",
       password: "",
     },

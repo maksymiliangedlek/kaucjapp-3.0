@@ -1,6 +1,7 @@
 import { router } from "expo-router";
 import * as Haptics from "expo-haptics";
 import { useFormContext, useWatch } from "react-hook-form";
+import { StyleSheet } from "react-native";
 import { SignUpStepLayout } from "@/src/components/auth/sign-up/sign-up-step-layout";
 import { StepField } from "@/src/components/auth/sign-up/step-field";
 import {
@@ -8,12 +9,16 @@ import {
   stripPhoneDigits,
 } from "@/src/components/auth/sign-up/phone-format";
 import { useEditing } from "@/src/components/auth/sign-up/use-editing";
+import { SharePhoneToggle } from "@/src/components/ui/share-phone-toggle";
 import { signUpSchema, type SignUpValues } from "@/src/validation";
+import { spacing } from "@/src/theme";
 
 export default function PhoneStep() {
   const editing = useEditing();
-  const { trigger } = useFormContext<SignUpValues>();
+  const { setValue, trigger } = useFormContext<SignUpValues>();
   const phoneNumber = useWatch<SignUpValues>({ name: "phoneNumber" }) ?? "";
+  const sharePhoneOnReservation =
+    useWatch<SignUpValues>({ name: "sharePhoneOnReservation" }) ?? true;
 
   const canContinue = signUpSchema.shape.phoneNumber.safeParse(phoneNumber).success;
 
@@ -46,6 +51,24 @@ export default function PhoneStep() {
         returnKeyType="done"
         onSubmitEditing={onContinue}
       />
+
+      <SharePhoneToggle
+        value={sharePhoneOnReservation}
+        onValueChange={(next) =>
+          setValue("sharePhoneOnReservation", next, {
+            shouldDirty: true,
+            shouldValidate: true,
+          })
+        }
+        style={styles.toggle}
+      />
     </SignUpStepLayout>
   );
 }
+
+const styles = StyleSheet.create({
+  // StepField already leaves a small message spacer (~26pt); keep total gap ~24–32.
+  toggle: {
+    marginTop: spacing.sm,
+  },
+});
