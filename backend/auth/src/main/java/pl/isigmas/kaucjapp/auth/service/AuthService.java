@@ -74,6 +74,8 @@ public class AuthService {
         newUsersServiceUser.setPhone(newUser.getPhone());
         newUsersServiceUser.setFirstName(newUser.getFirstName().trim());
         newUsersServiceUser.setLastName(newUser.getLastName().trim());
+        newUsersServiceUser.setSharePhoneOnReservation(
+                newUser.getSharePhoneOnReservation() == null || newUser.getSharePhoneOnReservation());
 
         kafkaPublisher.sendSyncUser(newUsersServiceUser);
 

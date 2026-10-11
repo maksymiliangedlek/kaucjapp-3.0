@@ -169,6 +169,28 @@ class AuthServiceTest {
             assertEquals(validUser.getPhone(), capturedUser.getPhone());
             assertEquals(validUser.getFirstName(), capturedUser.getFirstName());
             assertEquals(validUser.getLastName(), capturedUser.getLastName());
+            assertEquals(true, capturedUser.getSharePhoneOnReservation());
+        }
+
+        @Test
+        @DisplayName("Should pass sharePhoneOnReservation false to users sync")
+        void shouldPassSharePhoneOnReservationFalse() {
+            validUser.setSharePhoneOnReservation(false);
+
+            Account savedAccount = new Account();
+            savedAccount.setId(43L);
+            savedAccount.setUsername(validUser.getUsername());
+            savedAccount.setEmail(validUser.getEmail());
+
+            when(encoder.hashPassword(anyString())).thenReturn("hash");
+            when(accountRepository.save(any(Account.class))).thenReturn(savedAccount);
+            when(tokenService.generateBase64()).thenReturn("dummy-token");
+
+            authService.create(validUser);
+
+            ArgumentCaptor<UsersServiceUser> userCaptor = ArgumentCaptor.forClass(UsersServiceUser.class);
+            verify(authKafkaPublisher).sendSyncUser(userCaptor.capture());
+            assertEquals(false, userCaptor.getValue().getSharePhoneOnReservation());
         }
 
         @Test

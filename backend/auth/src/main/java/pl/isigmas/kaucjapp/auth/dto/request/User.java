@@ -35,4 +35,7 @@ public class User {
     @NotBlank(message = "Last name is needed")
     private String lastName;
 
+    /** When null, defaults to true (share phone on reservation). */
+    private Boolean sharePhoneOnReservation;
+
 }
