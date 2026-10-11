@@ -848,4 +848,78 @@ class AuthControllerIntegrationTest {
         }
         }
     }
+
+    @Nested
+    @DisplayName("POST /api/auth/availability")
+    class AvailabilityEndpointTests {
+
+        private User createValidUser() {
+            User user = new User();
+            user.setUsername("takenname");
+            user.setEmail("taken@example.com");
+            user.setPassword("Password123!");
+            user.setPhone("123456789");
+            user.setFirstName("John");
+            user.setLastName("Doe");
+            return user;
+        }
+
+        @Test
+        @DisplayName("Should report taken email and free username, case-insensitively")
+        void shouldReportAvailability() throws Exception {
+            mockMvc.perform(post("/api/auth/register")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(createValidUser())))
+                    .andExpect(status().isCreated());
+
+            mockMvc.perform(post("/api/auth/availability")
+                            .header("X-Forwarded-For", "10.1.1.1")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("{\"email\":\"Taken@Example.com\",\"username\":\"freshname\"}"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.emailAvailable").value(false))
+                    .andExpect(jsonPath("$.usernameAvailable").value(true));
+        }
+
+        @Test
+        @DisplayName("Should reject a request with neither email nor username")
+        void shouldRejectEmptyAvailabilityRequest() throws Exception {
+            mockMvc.perform(post("/api/auth/availability")
+                            .header("X-Forwarded-For", "10.1.1.2")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("{}"))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.errorCode").value("VALIDATION_ERR"));
+        }
+
+        @Test
+        @DisplayName("Should reject an invalid email")
+        void shouldRejectInvalidEmail() throws Exception {
+            mockMvc.perform(post("/api/auth/availability")
+                            .header("X-Forwarded-For", "10.1.1.3")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("{\"email\":\"not-an-email\"}"))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.errorCode").value("VALIDATION_ERR"));
+        }
+
+        @Test
+        @DisplayName("Should return 429 after the per-IP limit")
+        void shouldRateLimitByClientIp() throws Exception {
+            String body = "{\"username\":\"ratelimituser\"}";
+            for (int i = 0; i < 30; i++) {
+                mockMvc.perform(post("/api/auth/availability")
+                                .header("X-Forwarded-For", "10.9.9.9")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(body))
+                        .andExpect(status().isOk());
+            }
+
+            mockMvc.perform(post("/api/auth/availability")
+                            .header("X-Forwarded-For", "10.9.9.9")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(body))
+                    .andExpect(status().isTooManyRequests());
+        }
+    }
 }

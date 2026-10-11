@@ -41,6 +41,9 @@ public class User {
     @Column(name = "phone")
     private String phone;
 
+    @Column(name = "share_phone_on_reservation", nullable = false)
+    private boolean sharePhoneOnReservation = true;
+
     @Column(name = "profile_picture_url")
     private String profilePictureUrl;
 

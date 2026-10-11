@@ -14,6 +14,8 @@ export const UpdateUserSchema = z.object({
     .max(100, "Nazwisko musi mieć maksymalnie 100 znaków")
     .nullable()
     .optional(),
+
+  sharePhoneOnReservation: z.boolean(),
 });
 
 export type UpdateUserFormValues = z.infer<typeof UpdateUserSchema>;

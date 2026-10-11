@@ -4,10 +4,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import pl.isigmas.kaucjapp.auth.dto.request.AvailabilityRequest;
 import pl.isigmas.kaucjapp.auth.dto.request.LoginCredentials;
 import pl.isigmas.kaucjapp.auth.dto.request.MailRequest;
 import pl.isigmas.kaucjapp.auth.dto.request.User;
 import pl.isigmas.kaucjapp.auth.dto.request.UsersServiceUser;
+import pl.isigmas.kaucjapp.auth.dto.response.AvailabilityResponse;
 import pl.isigmas.kaucjapp.auth.entity.*;
 import pl.isigmas.kaucjapp.auth.entity.enums.AccountRole;
 import pl.isigmas.kaucjapp.auth.entity.enums.AccountStatus;
@@ -41,18 +43,22 @@ public class AuthService {
 
     private final Encoder encoder;
 
+    public AvailabilityResponse checkAvailability(AvailabilityRequest request) {
+        Boolean emailAvailable = blank(request.getEmail()) ? null : !isEmailTaken(request.getEmail().trim());
+        Boolean usernameAvailable = blank(request.getUsername()) ? null : !isUsernameTaken(request.getUsername().trim());
+        return new AvailabilityResponse(emailAvailable, usernameAvailable);
+    }
+
     @Transactional
     public void create(User newUser) {
 
-        accountRepository.findByEmailIgnoreCase(newUser.getEmail())
-                .ifPresent(_ -> {
-                    throw new AccountAlreadyExistsException("Account with given email already exists");
-                });
+        if (isEmailTaken(newUser.getEmail())) {
+            throw new AccountAlreadyExistsException("Account with given email already exists");
+        }
 
-        accountRepository.findByUsernameIgnoreCase(newUser.getUsername())
-                .ifPresent(_ -> {
-                    throw new AccountAlreadyExistsException("Username is already taken");
-                });
+        if (isUsernameTaken(newUser.getUsername())) {
+            throw new AccountAlreadyExistsException("Username is already taken");
+        }
 
         Account newAccount = new Account();
         newAccount.setUsername(newUser.getUsername().trim());
@@ -68,6 +74,8 @@ public class AuthService {
         newUsersServiceUser.setPhone(newUser.getPhone());
         newUsersServiceUser.setFirstName(newUser.getFirstName().trim());
         newUsersServiceUser.setLastName(newUser.getLastName().trim());
+        newUsersServiceUser.setSharePhoneOnReservation(
+                newUser.getSharePhoneOnReservation() == null || newUser.getSharePhoneOnReservation());
 
         kafkaPublisher.sendSyncUser(newUsersServiceUser);
 
@@ -323,5 +331,17 @@ public class AuthService {
         AccountRole role = account.getRole();
 
         return jwtService.generateAccessToken(userId.toString(), role.toString());
+    }
+
+    private boolean isEmailTaken(String email) {
+        return accountRepository.findByEmailIgnoreCase(email).isPresent();
+    }
+
+    private boolean isUsernameTaken(String username) {
+        return accountRepository.findByUsernameIgnoreCase(username).isPresent();
+    }
+
+    private static boolean blank(String value) {
+        return value == null || value.isBlank();
     }
 }

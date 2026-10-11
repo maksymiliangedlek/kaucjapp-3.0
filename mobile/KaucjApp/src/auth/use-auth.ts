@@ -43,7 +43,8 @@ export const useAuth = () => {
           username: userData.username,
           firstName: userData.firstName,
           lastName: userData.lastName,
-          phone: userData.phone,
+          phone: userData.phone ?? null,
+          sharePhoneOnReservation: userData.sharePhoneOnReservation ?? true,
           profilePictureUrl: userData.profilePictureUrl ?? null,
           addresses: userData.addresses,
           createdAt: userData.createdAt,
@@ -75,6 +76,7 @@ export const useAuth = () => {
           lastName: credentials.lastName,
           username: credentials.userName,
           phone: credentials.phoneNumber,
+          sharePhoneOnReservation: credentials.sharePhoneOnReservation,
           email: credentials.email,
           password: credentials.password,
         };

@@ -28,6 +28,9 @@ public class UsersServiceUser {
     @JsonProperty("phone")
     private String phone;
 
+    /** When null, defaults to true on the users-service side. */
+    private Boolean sharePhoneOnReservation;
+
     @NotBlank(message = "Email cannot be blank")
     @Email(message = "Invalid email format")
     private String email;

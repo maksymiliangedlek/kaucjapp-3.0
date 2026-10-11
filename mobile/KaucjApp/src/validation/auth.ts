@@ -7,8 +7,16 @@ export const signUpSchema = z.object({
     .string()
     .trim()
     .min(6, "Nazwa użytkownika musi mieć co najmniej 6 znaków.")
-    .regex(/^\S+$/, "Nazwa użytkownika nie może zawierać spacji."),
-  phoneNumber: z.string().trim().min(9, "Podaj poprawny numer telefonu."),
+    .max(100, "Nazwa użytkownika jest za długa.")
+    .regex(
+      /^[a-zA-Z0-9]+$/,
+      "Nazwa użytkownika może zawierać tylko litery i cyfry.",
+    ),
+  phoneNumber: z
+    .string()
+    .trim()
+    .regex(/^\d{9}$/, "Podaj 9-cyfrowy numer telefonu."),
+  sharePhoneOnReservation: z.boolean(),
   email: z.string().trim().email("Wprowadź poprawny adres email."),
   password: z
     .string()
@@ -22,6 +30,20 @@ export const signUpSchema = z.object({
       "Hasło musi zawierać co najmniej jeden znak specjalny.",
     ),
 });
+
+export type SignUpField = keyof SignUpValues;
+
+export const SIGN_UP_STEPS: {
+  route: "/sign-up" | "/sign-up/email" | "/sign-up/username" | "/sign-up/phone" | "/sign-up/password" | "/sign-up/summary";
+  fields: SignUpField[];
+}[] = [
+  { route: "/sign-up", fields: ["firstName", "lastName"] },
+  { route: "/sign-up/email", fields: ["email"] },
+  { route: "/sign-up/username", fields: ["userName"] },
+  { route: "/sign-up/phone", fields: ["phoneNumber", "sharePhoneOnReservation"] },
+  { route: "/sign-up/password", fields: ["password"] },
+  { route: "/sign-up/summary", fields: [] },
+];
 export const signInSchema = z.object({
   email: z.string().trim().email("Wprowadź poprawny adres email."),
   password: z.string().trim().min(6, "Hasło musi mieć co najmniej 6 znaków."),

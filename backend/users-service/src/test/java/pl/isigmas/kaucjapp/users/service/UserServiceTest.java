@@ -14,6 +14,9 @@ import pl.isigmas.kaucjapp.users.repository.RatingRepository;
 import pl.isigmas.kaucjapp.users.repository.UserRepository;
 import pl.isigmas.kaucjapp.users.repository.UserStatsRepository;
 
+import org.mockito.ArgumentCaptor;
+
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -56,8 +59,32 @@ class UserServiceTest {
         userService.createUser(dto.getId(), dto);
 
         // Then
-        verify(userRepository, times(1)).save(any(User.class));
+        ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
+        verify(userRepository, times(1)).save(userCaptor.capture());
+        assertThat(userCaptor.getValue().isSharePhoneOnReservation()).isTrue();
         verify(ratingRepository, times(1)).save(any(Rating.class));
         verify(userStatsRepository, times(1)).save(any(UserStats.class));
+    }
+
+    @Test
+    void createUser_respectsSharePhoneOnReservationFalse() {
+        CreateUserDTO dto = CreateUserDTO.builder()
+                .id(43L)
+                .username("bob")
+                .firstName("Bo")
+                .lastName("B")
+                .phone("987654321")
+                .email("bob@example.com")
+                .sharePhoneOnReservation(false)
+                .build();
+
+        when(userRepository.existsByEmail(dto.getEmail())).thenReturn(false);
+        when(userRepository.existsByUsername(dto.getUsername())).thenReturn(false);
+
+        userService.createUser(dto.getId(), dto);
+
+        ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
+        verify(userRepository).save(userCaptor.capture());
+        assertThat(userCaptor.getValue().isSharePhoneOnReservation()).isFalse();
     }
 }

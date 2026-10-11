@@ -21,6 +21,9 @@ public class UpdateUserDTO {
     @Size(min = 1, max = 100, message = "Last name must be between 1 and 100 characters")
     private String lastName;
 
+    /** When present, updates whether phone is shown to others on reservation; null means "do not change". */
+    private Boolean sharePhoneOnReservation;
+
     @Valid
     private List<UserAddressDTO> addresses;
 }

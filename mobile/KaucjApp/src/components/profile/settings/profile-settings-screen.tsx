@@ -1,15 +1,28 @@
 import React from "react";
-import { View, Text, TextInput, StyleSheet } from "react-native";
-import { ScrollView } from "react-native-gesture-handler";
+import {
+  View,
+  Text,
+  TextInput,
+  StyleSheet,
+  ScrollView,
+} from "react-native";
 import { Controller } from "react-hook-form";
 
 import { useProfileSettingsForm } from "./use-profile-settings";
 import { AnimatedSaveButton } from "./submit-button";
-import { colors, rounded, shadows, spacing } from "@/src/theme";
+import { SharePhoneToggle } from "@/src/components/ui/share-phone-toggle";
+import { colors, shadows, spacing } from "@/src/theme";
 
 export default function ProfileSettingsScreen() {
-  const { control, errors, onSubmit, isSaveDisabled, isPending, isSuccess } =
-    useProfileSettingsForm();
+  const {
+    control,
+    errors,
+    onSubmit,
+    isSaveDisabled,
+    isPending,
+    isSuccess,
+    setSharePhoneOnReservation,
+  } = useProfileSettingsForm();
 
   return (
     <ScrollView
@@ -79,6 +92,20 @@ export default function ProfileSettingsScreen() {
         )}
       </View>
 
+      <View style={styles.privacySection}>
+        <Text style={styles.sectionTitle}>PRYWATNOŚĆ</Text>
+        <Controller
+          control={control}
+          name="sharePhoneOnReservation"
+          render={({ field: { value } }) => (
+            <SharePhoneToggle
+              value={value ?? true}
+              onValueChange={setSharePhoneOnReservation}
+            />
+          )}
+        />
+      </View>
+
       <AnimatedSaveButton
         text="Zapisz zmiany"
         onPress={onSubmit}
@@ -101,6 +128,9 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   section: {
+    marginBottom: spacing.lg,
+  },
+  privacySection: {
     marginBottom: 32,
   },
   sectionTitle: {
@@ -113,18 +143,18 @@ const styles = StyleSheet.create({
   },
   cardGroup: {
     backgroundColor: colors.background.card,
-    borderRadius: rounded.xl,
+    borderRadius: 16,
     padding: spacing.xs,
-    borderWidth: 1,
+    borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.status.border,
     ...shadows.light,
   },
   inputRow: {
     flexDirection: "row",
     alignItems: "center",
+    minHeight: 44,
     paddingVertical: 14,
     paddingHorizontal: 16,
-    borderRadius: rounded.apple,
     backgroundColor: colors.background.card,
   },
   label: {

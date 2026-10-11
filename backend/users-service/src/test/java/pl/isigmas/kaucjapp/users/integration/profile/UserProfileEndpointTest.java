@@ -206,4 +206,83 @@ public class UserProfileEndpointTest extends BaseIntegrationTest {
                         .param("content_type", "application/pdf"))
                 .andExpect(status().isBadRequest());
     }
+
+    @Test
+    void getUser_hidesPhoneWhenSharePhoneOnReservationIsFalse() throws Exception {
+        postCreateUser("""
+                {
+                    "user_id": 1010,
+                    "username": "privatephone",
+                    "first_name": "Priv",
+                    "last_name": "Ate",
+                    "phone": "555666777",
+                    "share_phone_on_reservation": false,
+                    "email": "privatephone@example.com"
+                }
+                """);
+
+        mockMvc.perform(get("/api/user/1010").header("X-User-Id", 999L))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.phone").value(org.hamcrest.Matchers.nullValue()))
+                .andExpect(jsonPath("$.share_phone_on_reservation").value(false));
+
+        mockMvc.perform(get("/api/user/me").header("X-User-Id", 1010L))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.phone").value("555666777"))
+                .andExpect(jsonPath("$.share_phone_on_reservation").value(false));
+
+        mockMvc.perform(get("/api/user/1010").header("X-User-Id", 1010L))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.phone").value("555666777"))
+                .andExpect(jsonPath("$.share_phone_on_reservation").value(false));
+    }
+
+    @Test
+    void getUser_returnsPhoneWhenSharePhoneOnReservationIsTrue() throws Exception {
+        postCreateUser("""
+                {
+                    "user_id": 1011,
+                    "username": "publicphone",
+                    "first_name": "Pub",
+                    "last_name": "Lic",
+                    "phone": "555666778",
+                    "email": "publicphone@example.com"
+                }
+                """);
+
+        mockMvc.perform(get("/api/user/1011").header("X-User-Id", 999L))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.phone").value("555666778"))
+                .andExpect(jsonPath("$.share_phone_on_reservation").value(true));
+    }
+
+    @Test
+    void patchMe_updatesSharePhoneOnReservation() throws Exception {
+        postCreateUser("""
+                {
+                    "user_id": 1012,
+                    "username": "togglephone",
+                    "first_name": "Tog",
+                    "last_name": "Gle",
+                    "phone": "555666779",
+                    "email": "togglephone@example.com"
+                }
+                """);
+
+        mockMvc.perform(patch("/api/user/me")
+                        .header("X-User-Id", 1012L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"share_phone_on_reservation\": false}"))
+                .andExpect(status().isNoContent());
+
+        mockMvc.perform(get("/api/user/me").header("X-User-Id", 1012L))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.share_phone_on_reservation").value(false))
+                .andExpect(jsonPath("$.phone").value("555666779"));
+
+        mockMvc.perform(get("/api/user/1012").header("X-User-Id", 999L))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.phone").value(org.hamcrest.Matchers.nullValue()))
+                .andExpect(jsonPath("$.share_phone_on_reservation").value(false));
+    }
 }

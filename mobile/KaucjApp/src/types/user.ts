@@ -5,7 +5,8 @@ export interface User {
   username: string;
   firstName: string;
   lastName: string;
-  phone: string;
+  phone: string | null;
+  sharePhoneOnReservation: boolean;
   profilePictureUrl?: string | null;
   createdAt: string;
   collectedBottleCount: number;

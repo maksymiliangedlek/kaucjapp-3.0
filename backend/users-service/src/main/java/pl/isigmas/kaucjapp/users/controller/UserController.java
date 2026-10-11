@@ -63,16 +63,20 @@ public class UserController {
     @GetMapping("/{id}")
     @Operation(
             summary = "Get user by id",
-            description = "Returns UserDTO: user_id, username, names, phone, bottle/can stats, and nested addresses. "
-                    + "Email is not included; use admin user listing for email.")
+            description = "Returns UserDTO: user_id, username, names, phone (only when the target shares it "
+                    + "on reservation, or when the caller is viewing themselves), share_phone_on_reservation, "
+                    + "bottle/can stats, and nested addresses. Email is not included; use admin user listing for email.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "User found."),
             @ApiResponse(responseCode = "404", description = "User not found (USER_001).")
     })
-    public ResponseEntity<UserDTO> getUser(@PathVariable Long id) {
+    public ResponseEntity<UserDTO> getUser(
+            @PathVariable Long id,
+            @RequestHeader(value = "X-User-Id", required = false) Long viewerUserId) {
         log.info("Fetching user with ID: {}", id);
         logger.info("Fetching user with ID: "+ id);
-        return ResponseEntity.ok(userService.getUserById(id));
+        boolean includePhone = viewerUserId != null && viewerUserId.equals(id);
+        return ResponseEntity.ok(userService.getUserById(id, includePhone));
     }
 
 
@@ -149,6 +153,7 @@ public class UserController {
             summary = "Partially update my profile",
             description = "Patch body: UpdateUserDTO. All fields are optional (omit or null = leave unchanged). "
                     + "`firstName` / `lastName`: when sent, must be 1–100 characters. "
+                    + "`sharePhoneOnReservation`: when sent, updates whether phone is shown to others on reservation. "
                     + "`addresses`: when omitted or null, existing addresses are not changed; when sent (including `[]`), "
                     + "the list replaces all addresses (full replace). "
                     + "Username, email, and phone cannot be updated via this API (not present on UpdateUserDTO). "

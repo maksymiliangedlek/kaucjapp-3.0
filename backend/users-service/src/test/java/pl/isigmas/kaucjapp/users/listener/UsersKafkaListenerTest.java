@@ -40,7 +40,7 @@ class UsersKafkaListenerTest {
     @Test
     void handleUserSync_snakeCaseWireFormat_createsUser() throws Exception {
         String userJson = """
-                {"username":"testuser","first_name":"Anthony","last_name":"Gordon","email":"test@example.com","user_id":2,"phone":"7281299723"}
+                {"username":"testuser","first_name":"Anthony","last_name":"Gordon","email":"test@example.com","user_id":2,"phone":"7281299723","share_phone_on_reservation":false}
                 """;
 
         listener.handleUserSync(userJson);
@@ -54,6 +54,7 @@ class UsersKafkaListenerTest {
                                 && "Gordon".equals(user.getLastName())
                                 && "test@example.com".equals(user.getEmail())
                                 && "7281299723".equals(user.getPhone())
+                                && Boolean.FALSE.equals(user.getSharePhoneOnReservation())
                 )
         );
     }
