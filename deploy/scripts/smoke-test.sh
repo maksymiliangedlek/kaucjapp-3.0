@@ -37,6 +37,13 @@ echo "Smoke test against $BASE_URL"
 # Public endpoints
 check "gateway status" 200 "$BASE_URL/api/gateway/status"
 check "auth status" 200 "$BASE_URL/api/auth/status"
+check "auth availability" 200 -X POST "$BASE_URL/api/auth/availability" \
+  -H 'Content-Type: application/json' \
+  -d "{\"username\":\"smoke${RANDOM}${RANDOM}\"}"
+if ! grep -Eq '"username_available"|"usernameAvailable"' "$body_file"; then
+  echo "FAIL availability response did not contain username availability"
+  failures=$((failures + 1))
+fi
 check "graphql query" 200 -X POST "$BASE_URL/graphql" \
   -H 'Content-Type: application/json' -d '{"query":"{ hello }"}'
 if ! grep -q 'Hello from GraphQL Gateway' "$body_file"; then

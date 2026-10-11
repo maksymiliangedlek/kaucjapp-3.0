@@ -1,5 +1,6 @@
 package pl.isigmas.kaucjapp.auth.controller;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
@@ -8,10 +9,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import pl.isigmas.kaucjapp.auth.dto.request.AvailabilityRequest;
 import pl.isigmas.kaucjapp.auth.dto.request.LoginCredentials;
 import pl.isigmas.kaucjapp.auth.dto.request.ResetPasswordEmailRequest;
+import pl.isigmas.kaucjapp.auth.dto.response.AvailabilityResponse;
 import pl.isigmas.kaucjapp.auth.service.AuthService;
 import pl.isigmas.kaucjapp.auth.dto.request.User;
+import pl.isigmas.kaucjapp.auth.service.AvailabilityLimiter;
 import pl.isigmas.kaucjapp.auth.service.LoginLimiter;
 import pl.isigmas.kaucjapp.common.logger.Logger;
 
@@ -24,6 +28,7 @@ public class AuthController {
 
     private final AuthService service;
     private final LoginLimiter loginLimitter;
+    private final AvailabilityLimiter availabilityLimiter;
     private final Logger logger;
 
     @GetMapping("/status")
@@ -45,6 +50,32 @@ public class AuthController {
         logger.info("New user created");
 
         return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
+    @PostMapping("/availability")
+    public ResponseEntity<?> availability(
+            @Valid @RequestBody AvailabilityRequest request,
+            HttpServletRequest httpRequest
+    ) {
+        String clientIp = clientIp(httpRequest);
+        if (availabilityLimiter.isBlocked(clientIp)) {
+            long timeLeft = availabilityLimiter.getRemainingMinutes(clientIp);
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                    .body("Too many availability checks. Please try again in " + timeLeft + " minutes");
+        }
+
+        availabilityLimiter.increment(clientIp);
+        AvailabilityResponse response = service.checkAvailability(request);
+        return ResponseEntity.ok(response);
+    }
+
+    private static String clientIp(HttpServletRequest request) {
+        String forwarded = request.getHeader("X-Forwarded-For");
+        if (forwarded != null && !forwarded.isBlank()) {
+            return forwarded.split(",")[0].trim();
+        }
+        String remote = request.getRemoteAddr();
+        return remote == null ? "unknown" : remote;
     }
 
     @PostMapping("/login")

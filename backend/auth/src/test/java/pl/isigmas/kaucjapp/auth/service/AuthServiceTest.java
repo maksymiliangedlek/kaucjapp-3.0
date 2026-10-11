@@ -7,7 +7,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
+import pl.isigmas.kaucjapp.auth.dto.request.AvailabilityRequest;
 import pl.isigmas.kaucjapp.auth.dto.request.LoginCredentials;
+import pl.isigmas.kaucjapp.auth.dto.response.AvailabilityResponse;
 import pl.isigmas.kaucjapp.auth.dto.request.MailRequest;
 import pl.isigmas.kaucjapp.auth.dto.request.User;
 import pl.isigmas.kaucjapp.auth.dto.request.UsersServiceUser;
@@ -776,6 +778,45 @@ class AuthServiceTest {
 
             assertThrows(PasswordNotMatchesRegexException.class, () -> authService.resetPassword(rawToken, null));
         }
+        }
+    }
+
+    @Nested
+    @DisplayName("checkAvailability()")
+    class CheckAvailabilityTests {
+
+        @Test
+        @DisplayName("Should report a free email and a taken username")
+        void shouldReportMixedAvailability() {
+            when(accountRepository.findByEmailIgnoreCase("free@example.com")).thenReturn(Optional.empty());
+            when(accountRepository.findByUsernameIgnoreCase("taken")).thenReturn(Optional.of(new Account()));
+
+            AvailabilityRequest request = new AvailabilityRequest();
+            request.setEmail(" free@example.com ");
+            request.setUsername(" taken ");
+
+            AvailabilityResponse response = authService.checkAvailability(request);
+
+            assertEquals(Boolean.TRUE, response.getEmailAvailable());
+            assertEquals(Boolean.FALSE, response.getUsernameAvailable());
+            verify(accountRepository).findByEmailIgnoreCase("free@example.com");
+            verify(accountRepository).findByUsernameIgnoreCase("taken");
+        }
+
+        @Test
+        @DisplayName("Should skip a blank field")
+        void shouldSkipBlankField() {
+            when(accountRepository.findByUsernameIgnoreCase("freshuser")).thenReturn(Optional.empty());
+
+            AvailabilityRequest request = new AvailabilityRequest();
+            request.setEmail("   ");
+            request.setUsername("freshuser");
+
+            AvailabilityResponse response = authService.checkAvailability(request);
+
+            assertNull(response.getEmailAvailable());
+            assertEquals(Boolean.TRUE, response.getUsernameAvailable());
+            verify(accountRepository, never()).findByEmailIgnoreCase(anyString());
         }
     }
 }
