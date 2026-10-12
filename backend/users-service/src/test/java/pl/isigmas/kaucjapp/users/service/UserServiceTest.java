@@ -7,6 +7,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import pl.isigmas.kaucjapp.common.logger.Logger;
 import pl.isigmas.kaucjapp.users.DTO.CreateUserDTO;
+import pl.isigmas.kaucjapp.users.DTO.UpdateUserDTO;
+import pl.isigmas.kaucjapp.users.model.AppRole;
 import pl.isigmas.kaucjapp.users.model.Rating;
 import pl.isigmas.kaucjapp.users.model.User;
 import pl.isigmas.kaucjapp.users.model.UserStats;
@@ -15,6 +17,8 @@ import pl.isigmas.kaucjapp.users.repository.UserRepository;
 import pl.isigmas.kaucjapp.users.repository.UserStatsRepository;
 
 import org.mockito.ArgumentCaptor;
+
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -62,6 +66,8 @@ class UserServiceTest {
         ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
         verify(userRepository, times(1)).save(userCaptor.capture());
         assertThat(userCaptor.getValue().isSharePhoneOnReservation()).isTrue();
+        assertThat(userCaptor.getValue().isProductOnboardingCompleted()).isFalse();
+        assertThat(userCaptor.getValue().getAppRole()).isNull();
         verify(ratingRepository, times(1)).save(any(Rating.class));
         verify(userStatsRepository, times(1)).save(any(UserStats.class));
     }
@@ -86,5 +92,48 @@ class UserServiceTest {
         ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
         verify(userRepository).save(userCaptor.capture());
         assertThat(userCaptor.getValue().isSharePhoneOnReservation()).isFalse();
+    }
+
+    @Test
+    void updateUser_setsAppRoleAndCompletesProductOnboarding() {
+        User existing = new User();
+        existing.setId(50L);
+        existing.setUsername("carol");
+        existing.setFirstName("Car");
+        existing.setLastName("Ol");
+        existing.setEmail("carol@example.com");
+        existing.setProductOnboardingCompleted(false);
+
+        when(userRepository.findByIdWithAddresses(50L)).thenReturn(Optional.of(existing));
+
+        userService.updateUser(50L, UpdateUserDTO.builder()
+                .appRole(AppRole.BOTH)
+                .productOnboardingCompleted(true)
+                .build());
+
+        assertThat(existing.getAppRole()).isEqualTo(AppRole.BOTH);
+        assertThat(existing.isProductOnboardingCompleted()).isTrue();
+        assertThat(existing.getProductOnboardingCompletedAt()).isNotNull();
+    }
+
+    @Test
+    void updateUser_doesNotReopenProductOnboarding() {
+        User existing = new User();
+        existing.setId(51L);
+        existing.setUsername("dave");
+        existing.setFirstName("Da");
+        existing.setLastName("Ve");
+        existing.setEmail("dave@example.com");
+        existing.setProductOnboardingCompleted(true);
+        existing.setAppRole(AppRole.COLLECTOR);
+
+        when(userRepository.findByIdWithAddresses(51L)).thenReturn(Optional.of(existing));
+
+        userService.updateUser(51L, UpdateUserDTO.builder()
+                .productOnboardingCompleted(false)
+                .build());
+
+        assertThat(existing.isProductOnboardingCompleted()).isTrue();
+        assertThat(existing.getAppRole()).isEqualTo(AppRole.COLLECTOR);
     }
 }

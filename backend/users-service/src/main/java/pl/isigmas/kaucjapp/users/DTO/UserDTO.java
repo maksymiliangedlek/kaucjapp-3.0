@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import pl.isigmas.kaucjapp.users.model.AppRole;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -36,6 +37,10 @@ public class UserDTO {
     private String phone;
 
     private boolean sharePhoneOnReservation;
+
+    private AppRole appRole;
+
+    private boolean productOnboardingCompleted;
 
     @JsonProperty("profile_picture_url")
     private String profilePictureUrl;

@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import pl.isigmas.kaucjapp.users.model.AppRole;
 
 import java.util.List;
 
@@ -23,6 +24,15 @@ public class UpdateUserDTO {
 
     /** When present, updates whether phone is shown to others on reservation; null means "do not change". */
     private Boolean sharePhoneOnReservation;
+
+    /** When present, updates preferred app usage role; null means "do not change". */
+    private AppRole appRole;
+
+    /**
+     * When true, marks product onboarding as completed (idempotent).
+     * false/null means "do not change"; clients cannot reopen onboarding via this API.
+     */
+    private Boolean productOnboardingCompleted;
 
     @Valid
     private List<UserAddressDTO> addresses;

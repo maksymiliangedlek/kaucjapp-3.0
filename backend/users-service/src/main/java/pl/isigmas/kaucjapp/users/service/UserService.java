@@ -27,6 +27,7 @@ import pl.isigmas.kaucjapp.users.repository.UserRepository;
 import pl.isigmas.kaucjapp.users.repository.UserStatsRepository;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
@@ -100,6 +101,9 @@ public class UserService {
         user.setPhone(userDTO.getPhone());
         user.setSharePhoneOnReservation(
                 userDTO.getSharePhoneOnReservation() == null || userDTO.getSharePhoneOnReservation());
+        user.setProductOnboardingCompleted(false);
+        user.setAppRole(null);
+        user.setProductOnboardingCompletedAt(null);
 
         userRepository.save(user);
 
@@ -130,6 +134,14 @@ public class UserService {
         if (dto.getLastName() != null) existingUser.setLastName(dto.getLastName());
         if (dto.getSharePhoneOnReservation() != null) {
             existingUser.setSharePhoneOnReservation(dto.getSharePhoneOnReservation());
+        }
+        if (dto.getAppRole() != null) {
+            existingUser.setAppRole(dto.getAppRole());
+        }
+        if (Boolean.TRUE.equals(dto.getProductOnboardingCompleted())
+                && !existingUser.isProductOnboardingCompleted()) {
+            existingUser.setProductOnboardingCompleted(true);
+            existingUser.setProductOnboardingCompletedAt(Instant.now());
         }
         if (dto.getAddresses() != null) {
             new ArrayList<>(existingUser.getAddresses()).forEach(existingUser::removeAddress);
@@ -220,6 +232,8 @@ public class UserService {
                 .lastName(user.getLastName())
                 .phone(phone)
                 .sharePhoneOnReservation(sharePhone)
+                .appRole(user.getAppRole())
+                .productOnboardingCompleted(user.isProductOnboardingCompleted())
                 .profilePictureUrl(user.getProfilePictureUrl())
                 .addresses(addressDTOs)
                 .createdAt(user.getTimeCreated())

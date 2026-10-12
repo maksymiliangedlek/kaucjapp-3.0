@@ -44,6 +44,16 @@ public class User {
     @Column(name = "share_phone_on_reservation", nullable = false)
     private boolean sharePhoneOnReservation = true;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "app_role", length = 16)
+    private AppRole appRole;
+
+    @Column(name = "product_onboarding_completed", nullable = false)
+    private boolean productOnboardingCompleted = false;
+
+    @Column(name = "product_onboarding_completed_at")
+    private Instant productOnboardingCompletedAt;
+
     @Column(name = "profile_picture_url")
     private String profilePictureUrl;
 
