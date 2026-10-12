@@ -11,6 +11,11 @@ import { Controller } from "react-hook-form";
 import { useProfileSettingsForm } from "./use-profile-settings";
 import { AnimatedSaveButton } from "./submit-button";
 import { SharePhoneToggle } from "@/src/components/ui/share-phone-toggle";
+import RoleCard from "@/src/components/product-onboarding/role-card";
+import {
+  productOnboardingCopy,
+  ROLE_ORDER,
+} from "@/src/constants/product-onboarding/copy";
 import { colors, shadows, spacing } from "@/src/theme";
 
 export default function ProfileSettingsScreen() {
@@ -22,6 +27,7 @@ export default function ProfileSettingsScreen() {
     isPending,
     isSuccess,
     setSharePhoneOnReservation,
+    setAppRole,
   } = useProfileSettingsForm();
 
   return (
@@ -92,6 +98,29 @@ export default function ProfileSettingsScreen() {
         )}
       </View>
 
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>
+          {productOnboardingCopy.settings.appRoleTitle.toUpperCase()}
+        </Text>
+        <Text style={styles.hint}>{productOnboardingCopy.settings.appRoleHint}</Text>
+        <Controller
+          control={control}
+          name="appRole"
+          render={({ field: { value } }) => (
+            <View style={styles.roleList}>
+              {ROLE_ORDER.map((role) => (
+                <RoleCard
+                  key={role}
+                  role={role}
+                  selected={value === role}
+                  onPress={() => setAppRole(role)}
+                />
+              ))}
+            </View>
+          )}
+        />
+      </View>
+
       <View style={styles.privacySection}>
         <Text style={styles.sectionTitle}>PRYWATNOŚĆ</Text>
         <Controller
@@ -132,6 +161,17 @@ const styles = StyleSheet.create({
   },
   privacySection: {
     marginBottom: 32,
+  },
+  hint: {
+    fontSize: 13,
+    color: colors.text.secondary,
+    marginBottom: spacing.sm,
+    marginLeft: 16,
+    marginRight: 16,
+    lineHeight: 18,
+  },
+  roleList: {
+    gap: spacing.sm,
   },
   sectionTitle: {
     fontSize: 13,

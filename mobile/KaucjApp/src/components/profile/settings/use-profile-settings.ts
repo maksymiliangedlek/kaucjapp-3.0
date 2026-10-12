@@ -22,6 +22,7 @@ export const useProfileSettingsForm = () => {
       firstName: user?.firstName || "",
       lastName: user?.lastName || "",
       sharePhoneOnReservation: user?.sharePhoneOnReservation ?? true,
+      appRole: user?.appRole ?? null,
     },
   });
 
@@ -43,11 +44,20 @@ export const useProfileSettingsForm = () => {
       firstName: me.firstName || "",
       lastName: me.lastName || "",
       sharePhoneOnReservation: me.sharePhoneOnReservation ?? true,
+      appRole: me.appRole ?? null,
     });
   }, [me, reset]);
 
   const setSharePhoneOnReservation = (next: boolean) => {
     setValue("sharePhoneOnReservation", next, {
+      shouldDirty: true,
+      shouldValidate: true,
+      shouldTouch: true,
+    });
+  };
+
+  const setAppRole = (next: UpdateUserFormValues["appRole"]) => {
+    setValue("appRole", next, {
       shouldDirty: true,
       shouldValidate: true,
       shouldTouch: true,
@@ -73,5 +83,6 @@ export const useProfileSettingsForm = () => {
     isPending,
     isSuccess,
     setSharePhoneOnReservation,
+    setAppRole,
   };
 };

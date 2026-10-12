@@ -51,7 +51,11 @@ const openNotification = (data: Partial<PushData>) => {
 };
 
 // Registers the device for push, keeps cached data fresh when a push arrives and opens the related screen on tap.
-export const usePushNotifications = (isAuthenticated: boolean) => {
+// Skip registration until product onboarding is done so the first prompt can happen in-context (guide A2).
+export const usePushNotifications = (
+  isAuthenticated: boolean,
+  productOnboardingCompleted: boolean,
+) => {
   const queryClient = useQueryClient();
   const pathname = usePathname();
   const { offerId } = useGlobalSearchParams<{ offerId?: string }>();
@@ -64,7 +68,7 @@ export const usePushNotifications = (isAuthenticated: boolean) => {
   }, [pathname, offerId]);
 
   useEffect(() => {
-    if (!isAuthenticated) return;
+    if (!isAuthenticated || !productOnboardingCompleted) return;
     registerForPushNotifications();
 
     const subscription = Notifications.addNotificationReceivedListener(
@@ -78,7 +82,7 @@ export const usePushNotifications = (isAuthenticated: boolean) => {
       },
     );
     return () => subscription.remove();
-  }, [isAuthenticated, queryClient]);
+  }, [isAuthenticated, productOnboardingCompleted, queryClient]);
 
   // Also covers the cold start from a tapped notification: the last response is replayed once signed in.
   useEffect(() => {

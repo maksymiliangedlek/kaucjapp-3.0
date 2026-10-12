@@ -1,6 +1,6 @@
 import { create } from "zustand";
-import { authStorage, tokenStorage } from "./secure-storage";
-import { User } from "@/src/types/user";
+import { appStorage, authStorage, tokenStorage } from "./secure-storage";
+import { AppRole, User } from "@/src/types/user";
 import { mapUserFromApi } from "@/src/lib/map-user";
 import { AxiosInstance } from "axios";
 
@@ -74,8 +74,16 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           .get("/user/me", {
             headers: { Authorization: `Bearer ${token}` },
           })
-          .then(({ data: userData }) => {
+          .then(async ({ data: userData }) => {
             const freshUser = mapUserFromApi(userData);
+            const pending = await appStorage.getPendingProductOnboardingSync();
+            // Keep local "completed" while an offline finish is still syncing.
+            if (pending && !freshUser.productOnboardingCompleted) {
+              freshUser.productOnboardingCompleted = true;
+              if (pending.appRole) {
+                freshUser.appRole = pending.appRole as AppRole;
+              }
+            }
             set({ user: freshUser });
             authStorage.setUserData(freshUser);
           })
