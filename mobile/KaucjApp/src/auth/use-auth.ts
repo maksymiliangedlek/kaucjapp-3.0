@@ -7,6 +7,10 @@ import { tokenStorage } from "./secure-storage";
 import { ApiError, parseAuthError } from "@/src/api/api-error";
 import { SignInValues, SignUpValues } from "../validation";
 import { User } from "@/src/types/user";
+import {
+  getDefaultRouteForAppRole,
+  mapUserFromApi,
+} from "@/src/lib/map-user";
 import { unregisterFromPushNotifications } from "@/src/notifications/push-registration";
 
 export const useAuth = () => {
@@ -38,25 +42,12 @@ export const useAuth = () => {
         const { data: userData } = await apiClient.get("/user/me", {
           headers: { Authorization: `Bearer ${newAccessToken}` },
         });
-        const user: User = {
-          userId: userData.userId,
-          username: userData.username,
-          firstName: userData.firstName,
-          lastName: userData.lastName,
-          phone: userData.phone ?? null,
-          sharePhoneOnReservation: userData.sharePhoneOnReservation ?? true,
-          profilePictureUrl: userData.profilePictureUrl ?? null,
-          addresses: userData.addresses,
-          createdAt: userData.createdAt,
-          collectedBottleCount: userData.collectedBottleCount,
-          collectedCanCount: userData.collectedCanCount,
-          returnedBottleCount: userData.returnedBottleCount,
-          returnedCanCount: userData.returnedCanCount,
-          returnedTotalCount: userData.returnedTotalCount,
-          collectedTotalCount: userData.collectedTotalCount,
-        };
 
-        return { accessToken: newAccessToken, refreshToken, user };
+        return {
+          accessToken: newAccessToken,
+          refreshToken,
+          user: mapUserFromApi(userData),
+        };
       } catch (error) {
         throw parseAuthError(error);
       }
@@ -64,7 +55,11 @@ export const useAuth = () => {
 
     onSuccess: async ({ user, accessToken, refreshToken }) => {
       await setAuth(user, accessToken, refreshToken);
-      router.replace("/(app)/(tabs)/home");
+      if (!user.productOnboardingCompleted) {
+        router.replace("/(app)/product-onboarding");
+        return;
+      }
+      router.replace(getDefaultRouteForAppRole(user.appRole));
     },
   });
 

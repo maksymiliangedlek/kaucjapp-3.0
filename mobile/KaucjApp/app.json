@@ -6,7 +6,7 @@
     "orientation": "portrait",
     "icon": "./assets/icons/icon.png",
     "scheme": "kaucjapp",
-    "userInterfaceStyle": "automatic",
+    "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": false,

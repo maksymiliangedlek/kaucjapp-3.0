@@ -36,7 +36,7 @@ function RootLayoutAuth() {
       </Stack.Protected>
 
       <Stack.Protected guard={hasSeenOnboarding && isAuthenticated}>
-        <Stack.Screen name="(app)/(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="(app)" options={{ headerShown: false }} />
       </Stack.Protected>
     </Stack>
   );

@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { authStorage, tokenStorage } from "./secure-storage";
 import { User } from "@/src/types/user";
+import { mapUserFromApi } from "@/src/lib/map-user";
 import { AxiosInstance } from "axios";
 
 interface AuthState {
@@ -74,23 +75,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
             headers: { Authorization: `Bearer ${token}` },
           })
           .then(({ data: userData }) => {
-            const freshUser: User = {
-              userId: userData.userId,
-              username: userData.username,
-              firstName: userData.firstName,
-              lastName: userData.lastName,
-              phone: userData.phone ?? null,
-              sharePhoneOnReservation: userData.sharePhoneOnReservation ?? true,
-              profilePictureUrl: userData.profilePictureUrl ?? null,
-              addresses: userData.addresses,
-              createdAt: userData.createdAt,
-              collectedBottleCount: userData.collectedBottleCount,
-              collectedCanCount: userData.collectedCanCount,
-              returnedBottleCount: userData.returnedBottleCount,
-              returnedCanCount: userData.returnedCanCount,
-              returnedTotalCount: userData.returnedTotalCount,
-              collectedTotalCount: userData.collectedTotalCount,
-            };
+            const freshUser = mapUserFromApi(userData);
             set({ user: freshUser });
             authStorage.setUserData(freshUser);
           })

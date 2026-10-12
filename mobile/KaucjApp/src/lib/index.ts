@@ -8,6 +8,7 @@ import {
 import { colors } from "../theme";
 export * from "./map-box";
 export * from "./countdown";
+export * from "./map-user";
 import { formatDistanceToNow, parseISO } from "date-fns";
 import { pl } from "date-fns/locale";
 
