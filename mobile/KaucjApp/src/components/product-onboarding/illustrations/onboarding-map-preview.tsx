@@ -25,24 +25,24 @@ function buildDemoOffers(center: { latitude: number; longitude: number }): DemoO
     {
       // was top-left → shifted down-left
       id: "demo-1",
-      latitude: lat - 0.0012,
-      longitude: lon - 0.0048,
+      latitude: lat + 0.0015,
+      longitude: lon - 0.0158,
       totalQuantity: 10,
       totalIncome: 3,
     },
     {
       // bottom-left → further left
       id: "demo-2",
-      latitude: lat - 0.0038,
-      longitude: lon - 0.0085,
+      latitude: lat - 0.0063,
+      longitude: lon - 0.0095,
       totalQuantity: 16,
       totalIncome: 4,
     },
     {
       // bottom-right → further right
       id: "demo-3",
-      latitude: lat - 0.0025,
-      longitude: lon + 0.0085,
+      latitude: lat - 0.0015,
+      longitude: lon + 0.0115,
       totalQuantity: 20,
       totalIncome: 4.3,
     },
