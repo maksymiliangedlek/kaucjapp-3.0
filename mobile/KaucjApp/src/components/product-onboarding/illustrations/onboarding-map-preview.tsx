@@ -41,6 +41,9 @@ const MACHINE_MARKER_IMAGES: Record<DepositMachineStatus, ImageSourcePropType> =
     OUT_OF_ORDER: require("@/assets/images/markers/deposit_marker_red.png"),
   };
 
+/** Same id highlighted as reserved on B3 — B5 centers the "you are here" pin here. */
+export const DEMO_RESERVED_OFFER_ID = "demo-3";
+
 function buildDemoOffers(center: { latitude: number; longitude: number }): DemoOffer[] {
   const { latitude: lat, longitude: lon } = center;
   return [
@@ -61,9 +64,9 @@ function buildDemoOffers(center: { latitude: number; longitude: number }): DemoO
       totalIncome: 4,
     },
     {
-      // bottom-right → further right
-      id: "demo-3",
-      latitude: lat - 0.0020,
+      // bottom-right → further right (reserved on B3)
+      id: DEMO_RESERVED_OFFER_ID,
+      latitude: lat - 0.002,
       longitude: lon + 0.0115,
       totalQuantity: 20,
       totalIncome: 4.3,
@@ -78,6 +81,19 @@ function buildDemoOffers(center: { latitude: number; longitude: number }): DemoO
   ];
 }
 
+function getReservedOfferPosition(userCenter: {
+  latitude: number;
+  longitude: number;
+}) {
+  const reserved = buildDemoOffers(userCenter).find(
+    (o) => o.id === DEMO_RESERVED_OFFER_ID,
+  );
+  return {
+    latitude: reserved!.latitude,
+    longitude: reserved!.longitude,
+  };
+}
+
 function buildDemoMachines(center: {
   latitude: number;
   longitude: number;
@@ -86,26 +102,56 @@ function buildDemoMachines(center: {
   return [
     {
       id: "machine-1",
-      latitude: lat + 0.0045,
-      longitude: lon - 0.006,
+      latitude: lat + 0.0055,
+      longitude: lon - 0.007,
       status: "AVAILABLE",
     },
     {
       id: "machine-2",
-      latitude: lat - 0.005,
-      longitude: lon - 0.0035,
+      latitude: lat - 0.006,
+      longitude: lon - 0.0045,
       status: "AVAILABLE",
     },
     {
       id: "machine-3",
-      latitude: lat + 0.0015,
-      longitude: lon + 0.007,
+      latitude: lat + 0.002,
+      longitude: lon + 0.008,
       status: "FULL",
     },
     {
       id: "machine-4",
-      latitude: lat - 0.0035,
-      longitude: lon + 0.004,
+      latitude: lat - 0.004,
+      longitude: lon + 0.0055,
+      status: "AVAILABLE",
+    },
+    {
+      id: "machine-5",
+      latitude: lat + 0.0065,
+      longitude: lon + 0.0025,
+      status: "AVAILABLE",
+    },
+    {
+      id: "machine-6",
+      latitude: lat - 0.0025,
+      longitude: lon - 0.0085,
+      status: "OUT_OF_ORDER",
+    },
+    {
+      id: "machine-7",
+      latitude: lat + 0.0035,
+      longitude: lon - 0.002,
+      status: "AVAILABLE",
+    },
+    {
+      id: "machine-8",
+      latitude: lat - 0.007,
+      longitude: lon + 0.0015,
+      status: "FULL",
+    },
+    {
+      id: "machine-9",
+      latitude: lat + 0.0008,
+      longitude: lon + 0.0035,
       status: "AVAILABLE",
     },
   ];
@@ -172,7 +218,10 @@ export default function OnboardingMapPreview({
   reservedOfferId,
   variant = "offers",
 }: OnboardingMapPreviewProps) {
-  const [region, setRegion] = useState<Region | null>(null);
+  const [userCenter, setUserCenter] = useState<{
+    latitude: number;
+    longitude: number;
+  } | null>(null);
   const [tracksViewChanges, setTracksViewChanges] = useState(
     Platform.OS === "android",
   );
@@ -188,11 +237,9 @@ export default function OnboardingMapPreview({
             accuracy: Location.Accuracy.Balanced,
           });
           if (!cancelled) {
-            setRegion({
+            setUserCenter({
               latitude: location.coords.latitude,
               longitude: location.coords.longitude,
-              latitudeDelta: MAP_DELTA,
-              longitudeDelta: MAP_DELTA,
             });
           }
           return;
@@ -201,11 +248,7 @@ export default function OnboardingMapPreview({
         // Fall through to default city center.
       }
       if (!cancelled) {
-        setRegion({
-          ...FALLBACK_CENTER,
-          latitudeDelta: MAP_DELTA,
-          longitudeDelta: MAP_DELTA,
-        });
+        setUserCenter(FALLBACK_CENTER);
       }
     };
 
@@ -224,51 +267,65 @@ export default function OnboardingMapPreview({
         const location = await Location.getCurrentPositionAsync({
           accuracy: Location.Accuracy.Balanced,
         });
-        setRegion({
+        setUserCenter({
           latitude: location.coords.latitude,
           longitude: location.coords.longitude,
-          latitudeDelta: MAP_DELTA,
-          longitudeDelta: MAP_DELTA,
         });
       } catch {
-        // Keep current region.
+        // Keep current center.
       }
     }, 800);
     return () => clearTimeout(timer);
   }, []);
 
-  useEffect(() => {
-    if (Platform.OS !== "android" || !region) return;
-    const t = setTimeout(() => setTracksViewChanges(false), 600);
-    return () => clearTimeout(t);
-  }, [region]);
-
-const center = useMemo(
-    () =>
-      region
-        ? { latitude: region.latitude, longitude: region.longitude }
-        : null,
-    [region],
+  const reservedPosition = useMemo(
+    () => (userCenter ? getReservedOfferPosition(userCenter) : null),
+    [userCenter],
   );
 
+  /** Offers: center on user. Machines: center on the reserved-offer pickup spot. */
+  const mapRegion = useMemo<Region | null>(() => {
+    if (!userCenter) return null;
+    const focus =
+      variant === "machines" && reservedPosition
+        ? reservedPosition
+        : userCenter;
+    return {
+      latitude: focus.latitude,
+      longitude: focus.longitude,
+      latitudeDelta: MAP_DELTA,
+      longitudeDelta: MAP_DELTA,
+    };
+  }, [userCenter, reservedPosition, variant]);
+
+  useEffect(() => {
+    if (Platform.OS !== "android" || !mapRegion) return;
+    const t = setTimeout(() => setTracksViewChanges(false), 600);
+    return () => clearTimeout(t);
+  }, [mapRegion]);
+
   const offers = useMemo(
-    () => (center && variant === "offers" ? buildDemoOffers(center) : []),
-    [center, variant],
+    () =>
+      userCenter && variant === "offers" ? buildDemoOffers(userCenter) : [],
+    [userCenter, variant],
   );
 
   const machines = useMemo(
-    () => (center && variant === "machines" ? buildDemoMachines(center) : []),
-    [center, variant],
+    () =>
+      reservedPosition && variant === "machines"
+        ? buildDemoMachines(reservedPosition)
+        : [],
+    [reservedPosition, variant],
   );
 
   return (
     <View style={styles.wrapper} pointerEvents="none">
-      {region ? (
+      {mapRegion ? (
         <MapView
           provider={PROVIDER_DEFAULT}
           style={StyleSheet.absoluteFill}
-          initialRegion={region}
-          region={region}
+          initialRegion={mapRegion}
+          region={mapRegion}
           scrollEnabled={false}
           zoomEnabled={false}
           rotateEnabled={false}
@@ -281,10 +338,23 @@ const center = useMemo(
           showsTraffic={false}
           showsIndoors={false}
           showsMyLocationButton={false}
-          showsUserLocation
+          // Real GPS would stay at the old spot — B5 fakes "you are here" at the reserved offer.
+          showsUserLocation={variant !== "machines"}
           moveOnMarkerPress={false}
           liteMode={false}
         >
+          {variant === "machines" && reservedPosition ? (
+            <Marker
+              coordinate={reservedPosition}
+              tracksViewChanges={tracksViewChanges}
+              anchor={{ x: 0.5, y: 0.5 }}
+              zIndex={30}
+            >
+              <View style={styles.userLocationOuter}>
+                <View style={styles.userLocationInner} />
+              </View>
+            </Marker>
+          ) : null}
           {offers.map((offer) => {
             const isReserved = offer.id === reservedOfferId;
             return (
@@ -446,5 +516,21 @@ const styles = StyleSheet.create({
   machinePin: {
     width: 50,
     height: 50,
+  },
+  userLocationOuter: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: "rgba(0, 122, 255, 0.22)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  userLocationInner: {
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    backgroundColor: "#007AFF",
+    borderWidth: 2.5,
+    borderColor: "#FFFFFF",
   },
 });

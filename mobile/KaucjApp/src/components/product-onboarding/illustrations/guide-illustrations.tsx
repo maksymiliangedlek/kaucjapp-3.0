@@ -16,7 +16,9 @@ import * as Haptics from "expo-haptics";
 import { MapPin, MessageCircle, Package, Check } from "lucide-react-native";
 import ConfirmationCheck from "@/src/components/ui/confirmation-check";
 import OfferSatusPill from "@/src/components/ui/offer-status-pill";
-import OnboardingMapPreview from "./onboarding-map-preview";
+import OnboardingMapPreview, {
+  DEMO_RESERVED_OFFER_ID,
+} from "./onboarding-map-preview";
 import { colors, rounded, shadows, spacing } from "@/src/theme";
 import { GuideIllustrationId } from "@/src/constants/product-onboarding/steps";
 import { OfferStatus } from "@/src/types";
@@ -108,7 +110,7 @@ function renderArt(id: GuideIllustrationId) {
       );
     case "collectorChat":
       // Same map as B1, with one offer styled as the user's reservation.
-      return <OnboardingMapPreview reservedOfferId="demo-3" />;
+      return <OnboardingMapPreview reservedOfferId={DEMO_RESERVED_OFFER_ID} />;
     case "mapMachines":
       return <OnboardingMapPreview variant="machines" />;
     case "stats":
