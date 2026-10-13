@@ -94,8 +94,8 @@ export const productOnboardingCopy = {
       body: "Po wzajemnym potwierdzeniu wymiana ląduje w statystykach i historii rezerwacji.",
     },
     B5: {
-      title: "Udaj się do kaucjomatu",
-      body: "Z opakowaniami kaucyjnymi udaj się do najbliższego kaucjomatu!",
+      title: "Udaj się do kaucjomatu!",
+      body: "Z opakowaniami udaj się do najbliższego kaucjomatu!",
     },
   },
 } as const;
