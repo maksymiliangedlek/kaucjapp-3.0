@@ -1,9 +1,17 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Platform, StyleSheet, Text, View } from "react-native";
+import {
+  Image,
+  Platform,
+  StyleSheet,
+  Text,
+  View,
+  type ImageSourcePropType,
+} from "react-native";
 import MapView, { Marker, PROVIDER_DEFAULT, Region } from "react-native-maps";
 import * as Location from "expo-location";
 import { colors, rounded } from "@/src/theme";
 import { formatPrice } from "@/src/lib";
+import type { DepositMachineStatus } from "@/src/types";
 
 /** Krakow Old Town — matches the look of the in-app map when location is unavailable. */
 const FALLBACK_CENTER = {
@@ -18,6 +26,20 @@ type DemoOffer = {
   totalQuantity: number;
   totalIncome: number;
 };
+
+type DemoMachine = {
+  id: string;
+  latitude: number;
+  longitude: number;
+  status: DepositMachineStatus;
+};
+
+const MACHINE_MARKER_IMAGES: Record<DepositMachineStatus, ImageSourcePropType> =
+  {
+    AVAILABLE: require("@/assets/images/markers/deposit_marker_green.png"),
+    FULL: require("@/assets/images/markers/deposit_marker_yellow.png"),
+    OUT_OF_ORDER: require("@/assets/images/markers/deposit_marker_red.png"),
+  };
 
 function buildDemoOffers(center: { latitude: number; longitude: number }): DemoOffer[] {
   const { latitude: lat, longitude: lon } = center;
@@ -52,6 +74,39 @@ function buildDemoOffers(center: { latitude: number; longitude: number }): DemoO
       longitude: lon + 0.0045,
       totalQuantity: 12,
       totalIncome: 3.5,
+    },
+  ];
+}
+
+function buildDemoMachines(center: {
+  latitude: number;
+  longitude: number;
+}): DemoMachine[] {
+  const { latitude: lat, longitude: lon } = center;
+  return [
+    {
+      id: "machine-1",
+      latitude: lat + 0.0045,
+      longitude: lon - 0.006,
+      status: "AVAILABLE",
+    },
+    {
+      id: "machine-2",
+      latitude: lat - 0.005,
+      longitude: lon - 0.0035,
+      status: "AVAILABLE",
+    },
+    {
+      id: "machine-3",
+      latitude: lat + 0.0015,
+      longitude: lon + 0.007,
+      status: "FULL",
+    },
+    {
+      id: "machine-4",
+      latitude: lat - 0.0035,
+      longitude: lon + 0.004,
+      status: "AVAILABLE",
     },
   ];
 }
@@ -105,14 +160,17 @@ function DemoReservedBubble({
 type OnboardingMapPreviewProps = {
   /** When set, that demo offer uses the green reserved marker style. */
   reservedOfferId?: string;
+  /** Show deposit-machine pins instead of offer bubbles. */
+  variant?: "offers" | "machines";
 };
 
 /**
- * Real MapView preview for onboarding — same bubble markers as the home map,
+ * Real MapView preview for onboarding — same bubble / machine markers as the home map,
  * centered on the user when possible.
  */
 export default function OnboardingMapPreview({
   reservedOfferId,
+  variant = "offers",
 }: OnboardingMapPreviewProps) {
   const [region, setRegion] = useState<Region | null>(null);
   const [tracksViewChanges, setTracksViewChanges] = useState(
@@ -185,15 +243,22 @@ export default function OnboardingMapPreview({
     return () => clearTimeout(t);
   }, [region]);
 
-  const offers = useMemo(
+const center = useMemo(
     () =>
       region
-        ? buildDemoOffers({
-            latitude: region.latitude,
-            longitude: region.longitude,
-          })
-        : [],
+        ? { latitude: region.latitude, longitude: region.longitude }
+        : null,
     [region],
+  );
+
+  const offers = useMemo(
+    () => (center && variant === "offers" ? buildDemoOffers(center) : []),
+    [center, variant],
+  );
+
+  const machines = useMemo(
+    () => (center && variant === "machines" ? buildDemoMachines(center) : []),
+    [center, variant],
   );
 
   return (
@@ -248,6 +313,25 @@ export default function OnboardingMapPreview({
               </Marker>
             );
           })}
+          {machines.map((machine) => (
+            <Marker
+              key={machine.id}
+              coordinate={{
+                latitude: machine.latitude,
+                longitude: machine.longitude,
+              }}
+              tracksViewChanges={tracksViewChanges}
+              anchor={{ x: 0.5, y: 1 }}
+              centerOffset={{ x: 0, y: -20 }}
+            >
+              <Image
+                source={MACHINE_MARKER_IMAGES[machine.status]}
+                style={styles.machinePin}
+                resizeMode="contain"
+                fadeDuration={0}
+              />
+            </Marker>
+          ))}
         </MapView>
       ) : (
         <View style={styles.placeholder} />
@@ -358,5 +442,9 @@ const styles = StyleSheet.create({
     backgroundColor: colors.text.white,
     borderWidth: 2,
     borderColor: colors.primary.base,
+  },
+  machinePin: {
+    width: 50,
+    height: 50,
   },
 });

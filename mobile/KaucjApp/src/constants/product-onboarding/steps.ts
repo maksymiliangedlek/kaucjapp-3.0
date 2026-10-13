@@ -24,6 +24,7 @@ export type GuideIllustrationId =
   | "mapOffers"
   | "swipeReserve"
   | "collectorChat"
+  | "mapMachines"
   | "stats"
   | "transition";
 
@@ -92,8 +93,15 @@ const B_STEPS: GuideStepConfig[] = [
     title: productOnboardingCopy.steps.B4.title,
     body: productOnboardingCopy.steps.B4.body,
     statusBadge: "COMPLETED",
-    isFinal: true,
     illustration: "stats",
+    section: 2,
+  },
+  {
+    id: "B5",
+    title: productOnboardingCopy.steps.B5.title,
+    body: productOnboardingCopy.steps.B5.body,
+    isFinal: true,
+    illustration: "mapMachines",
     section: 2,
   },
 ];
@@ -111,7 +119,7 @@ export function buildGuideSteps(role: AppRole): GuideStepConfig[] {
     case "OFFERER":
       return A_STEPS.map((s) => ({ ...s, section: undefined, isFinal: s.id === "A4" }));
     case "COLLECTOR":
-      return B_STEPS.map((s) => ({ ...s, section: undefined, isFinal: s.id === "B4" }));
+      return B_STEPS.map((s) => ({ ...s, section: undefined, isFinal: s.id === "B5" }));
     case "BOTH": {
       const a = A_STEPS.map((s) => ({
         ...s,
@@ -121,7 +129,7 @@ export function buildGuideSteps(role: AppRole): GuideStepConfig[] {
       const b = B_STEPS.map((s) => ({
         ...s,
         section: 2 as const,
-        isFinal: s.id === "B4",
+        isFinal: s.id === "B5",
       }));
       return [...a, TRANSITION_STEP, ...b];
     }

@@ -109,6 +109,8 @@ function renderArt(id: GuideIllustrationId) {
     case "collectorChat":
       // Same map as B1, with one offer styled as the user's reservation.
       return <OnboardingMapPreview reservedOfferId="demo-3" />;
+    case "mapMachines":
+      return <OnboardingMapPreview variant="machines" />;
     case "stats":
       return (
         <View style={styles.card}>

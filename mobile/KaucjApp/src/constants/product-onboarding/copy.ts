@@ -48,7 +48,7 @@ export const productOnboardingCopy = {
       },
       COLLECTOR: {
         title: "Odbierający",
-        subtitle: "Od mapy i rezerwacji do historii wymian",
+        subtitle: "Od mapy i rezerwacji do kaucjomatu",
       },
       BOTH: {
         title: "Jedno i drugie",
@@ -93,6 +93,10 @@ export const productOnboardingCopy = {
       title: "Potwierdź i zapisz w historii",
       body: "Po wzajemnym potwierdzeniu wymiana ląduje w statystykach i historii rezerwacji.",
     },
+    B5: {
+      title: "Udaj się do kaucjomatu",
+      body: "Z opakowaniami kaucyjnymi udaj się do najbliższego kaucjomatu!",
+    },
   },
 } as const;
 
@@ -105,6 +109,7 @@ export type GuideStepId =
   | "B2"
   | "B3"
   | "B4"
+  | "B5"
   | "transition";
 
 export const ROLE_ORDER: AppRole[] = ["OFFERER", "COLLECTOR", "BOTH"];
