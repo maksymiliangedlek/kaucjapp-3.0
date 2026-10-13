@@ -154,6 +154,55 @@ function buildDemoMachines(center: {
       longitude: lon + 0.0035,
       status: "AVAILABLE",
     },
+    // Far left / right so the map edges are not empty.
+    {
+      id: "machine-10",
+      latitude: lat + 0.004,
+      longitude: lon - 0.012,
+      status: "AVAILABLE",
+    },
+    {
+      id: "machine-11",
+      latitude: lat - 0.003,
+      longitude: lon - 0.0135,
+      status: "AVAILABLE",
+    },
+    {
+      id: "machine-12",
+      latitude: lat + 0.001,
+      longitude: lon - 0.0105,
+      status: "FULL",
+    },
+    {
+      id: "machine-13",
+      latitude: lat - 0.0055,
+      longitude: lon - 0.011,
+      status: "AVAILABLE",
+    },
+    {
+      id: "machine-14",
+      latitude: lat + 0.005,
+      longitude: lon + 0.0125,
+      status: "AVAILABLE",
+    },
+    {
+      id: "machine-15",
+      latitude: lat - 0.0015,
+      longitude: lon + 0.013,
+      status: "AVAILABLE",
+    },
+    {
+      id: "machine-16",
+      latitude: lat + 0.0025,
+      longitude: lon + 0.0105,
+      status: "OUT_OF_ORDER",
+    },
+    {
+      id: "machine-17",
+      latitude: lat - 0.0065,
+      longitude: lon + 0.0115,
+      status: "AVAILABLE",
+    },
   ];
 }
 
