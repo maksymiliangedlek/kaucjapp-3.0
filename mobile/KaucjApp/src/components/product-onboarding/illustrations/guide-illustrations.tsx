@@ -16,6 +16,7 @@ import * as Haptics from "expo-haptics";
 import { MapPin, MessageCircle, Package, Check } from "lucide-react-native";
 import ConfirmationCheck from "@/src/components/ui/confirmation-check";
 import OfferSatusPill from "@/src/components/ui/offer-status-pill";
+import OnboardingMapPreview from "./onboarding-map-preview";
 import { colors, rounded, shadows, spacing } from "@/src/theme";
 import { GuideIllustrationId } from "@/src/constants/product-onboarding/steps";
 import { OfferStatus } from "@/src/types";
@@ -98,19 +99,7 @@ function renderArt(id: GuideIllustrationId) {
         </View>
       );
     case "mapOffers":
-      return (
-        <View style={styles.card}>
-          <View style={styles.mapStub}>
-            <View style={styles.pin} />
-            <View style={[styles.pin, styles.pinAlt]} />
-            <View style={[styles.pin, styles.pinFar]} />
-          </View>
-          <View style={styles.offerPreview}>
-            <Package size={16} color={colors.primary.base} />
-            <Text style={styles.offerPreviewText}>20 butelek · Słoneczna 12</Text>
-          </View>
-        </View>
-      );
+      return <OnboardingMapPreview />;
     case "swipeReserve":
       return (
         <View style={styles.card}>
