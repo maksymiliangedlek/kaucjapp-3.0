@@ -182,13 +182,6 @@ function OnboardingSwipeSlider() {
     );
   }, [arrowPulse]);
 
-  const resetSlider = React.useCallback(() => {
-    translateX.value = withSpring(0, { damping: 15, stiffness: 150 });
-    fillWidth.value = withTiming(SLIDER_THUMB_SIZE, { duration: 300 });
-    labelOpacity.value = withTiming(1, { duration: 200 });
-    setSliderState("idle");
-    isLocked.current = false;
-  }, [fillWidth, labelOpacity, translateX]);
 
   const handleComplete = React.useCallback(() => {
     isLocked.current = true;
@@ -199,11 +192,7 @@ function OnboardingSwipeSlider() {
 
     setSliderState("success");
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-
-    setTimeout(() => {
-      resetSlider();
-    }, 1800);
-  }, [fillWidth, maxTranslate, resetSlider, trackWidth, translateX]);
+  }, [fillWidth, maxTranslate, trackWidth, translateX]);
 
   const panGesture = Gesture.Pan()
     .enabled(sliderState === "idle" && maxTranslate > 0)
