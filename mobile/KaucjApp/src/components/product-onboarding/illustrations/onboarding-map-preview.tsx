@@ -21,32 +21,33 @@ type DemoOffer = {
 
 function buildDemoOffers(center: { latitude: number; longitude: number }): DemoOffer[] {
   const { latitude: lat, longitude: lon } = center;
+  // Spread in a rough diamond around the user so bubbles don't stack at this zoom.
   return [
     {
       id: "demo-1",
-      latitude: lat + 0.0018,
-      longitude: lon - 0.0004,
+      latitude: lat + 0.0042,
+      longitude: lon - 0.0015,
       totalQuantity: 10,
       totalIncome: 3,
     },
     {
       id: "demo-2",
-      latitude: lat - 0.0012,
-      longitude: lon - 0.0022,
+      latitude: lat - 0.0038,
+      longitude: lon - 0.0055,
       totalQuantity: 16,
       totalIncome: 4,
     },
     {
       id: "demo-3",
-      latitude: lat - 0.0006,
-      longitude: lon + 0.0024,
+      latitude: lat - 0.0025,
+      longitude: lon + 0.0058,
       totalQuantity: 20,
       totalIncome: 4.3,
     },
     {
       id: "demo-4",
-      latitude: lat + 0.0011,
-      longitude: lon + 0.0016,
+      latitude: lat + 0.0032,
+      longitude: lon + 0.0045,
       totalQuantity: 12,
       totalIncome: 3.5,
     },
@@ -97,8 +98,8 @@ export default function OnboardingMapPreview() {
             setRegion({
               latitude: location.coords.latitude,
               longitude: location.coords.longitude,
-              latitudeDelta: 0.012,
-              longitudeDelta: 0.012,
+              latitudeDelta: 0.022,
+              longitudeDelta: 0.022,
             });
           }
           return;
@@ -109,8 +110,8 @@ export default function OnboardingMapPreview() {
       if (!cancelled) {
         setRegion({
           ...FALLBACK_CENTER,
-          latitudeDelta: 0.012,
-          longitudeDelta: 0.012,
+          latitudeDelta: 0.022,
+          longitudeDelta: 0.022,
         });
       }
     };
@@ -133,8 +134,8 @@ export default function OnboardingMapPreview() {
         setRegion({
           latitude: location.coords.latitude,
           longitude: location.coords.longitude,
-          latitudeDelta: 0.012,
-          longitudeDelta: 0.012,
+          latitudeDelta: 0.022,
+          longitudeDelta: 0.022,
         });
       } catch {
         // Keep current region.
