@@ -58,16 +58,16 @@ export const productOnboardingCopy = {
   },
   settings: {
     appRoleTitle: "Jak korzystasz z aplikacji?",
-    appRoleHint: "Ustawia domyślny ekran startowy po zalogowaniu.",
+    appRoleHint: "Ustawia preferencje aplikacji.",
   },
   steps: {
     A1: {
       title: "Wystaw ofertę w minutę",
-      body: "Podaj ilość opakowań, lokalizację odbioru i opublikuj. Oferta od razu pojawia się jako otwarta.",
+      body: "Podaj ilość i cenę opakowań, lokalizację odbioru i opublikuj. Oferta od razu pojawia się jako otwarta.",
     },
     A2: {
       title: "Ktoś rezerwuje Twoją ofertę",
-      body: "Widzisz kuriera, możesz napisać na czacie i umówić odbiór. Rezerwacja trwa około 2 godzin.",
+      body: "Widzisz kuriera, możesz napisać na czacie i umówić odbiór. Przygotuj opakowania. Rezerwacja trwa około 2 godzin.",
     },
     A3: {
       title: "Spotkajcie się i przekażcie opakowania",
