@@ -19,45 +19,44 @@ type DemoOffer = {
   totalIncome: number;
 };
 
-/** Place pins near the four corners of the visible region so callouts stay readable. */
-function buildDemoOffers(region: Region): DemoOffer[] {
-  const { latitude: lat, longitude: lon, latitudeDelta: latD, longitudeDelta: lonD } =
-    region;
-  const dy = latD * 0.34;
-  const dx = lonD * 0.34;
+function buildDemoOffers(center: { latitude: number; longitude: number }): DemoOffer[] {
+  const { latitude: lat, longitude: lon } = center;
   return [
     {
+      // was top-left → shifted down-left
       id: "demo-1",
-      latitude: lat + dy,
-      longitude: lon - dx,
+      latitude: lat - 0.0012,
+      longitude: lon - 0.0048,
       totalQuantity: 10,
       totalIncome: 3,
     },
     {
+      // bottom-left → further left
       id: "demo-2",
-      latitude: lat - dy,
-      longitude: lon - dx,
+      latitude: lat - 0.0038,
+      longitude: lon - 0.0085,
       totalQuantity: 16,
       totalIncome: 4,
     },
     {
+      // bottom-right → further right
       id: "demo-3",
-      latitude: lat - dy,
-      longitude: lon + dx,
+      latitude: lat - 0.0025,
+      longitude: lon + 0.0085,
       totalQuantity: 20,
       totalIncome: 4.3,
     },
     {
       id: "demo-4",
-      latitude: lat + dy,
-      longitude: lon + dx,
+      latitude: lat + 0.0032,
+      longitude: lon + 0.0045,
       totalQuantity: 12,
       totalIncome: 3.5,
     },
   ];
 }
 
-const MAP_DELTA = 0.03;
+const MAP_DELTA = 0.022;
 
 function DemoOfferBubble({
   quantity,
@@ -156,7 +155,13 @@ export default function OnboardingMapPreview() {
   }, [region]);
 
   const offers = useMemo(
-    () => (region ? buildDemoOffers(region) : []),
+    () =>
+      region
+        ? buildDemoOffers({
+            latitude: region.latitude,
+            longitude: region.longitude,
+          })
+        : [],
     [region],
   );
 
