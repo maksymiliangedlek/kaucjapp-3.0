@@ -41,7 +41,7 @@ function buildDemoOffers(center: { latitude: number; longitude: number }): DemoO
     {
       // bottom-right → further right
       id: "demo-3",
-      latitude: lat - 0.0015,
+      latitude: lat - 0.0020,
       longitude: lon + 0.0115,
       totalQuantity: 20,
       totalIncome: 4.3,
