@@ -19,40 +19,45 @@ type DemoOffer = {
   totalIncome: number;
 };
 
-function buildDemoOffers(center: { latitude: number; longitude: number }): DemoOffer[] {
-  const { latitude: lat, longitude: lon } = center;
-  // Spread in a rough diamond around the user so bubbles don't stack at this zoom.
+/** Place pins near the four corners of the visible region so callouts stay readable. */
+function buildDemoOffers(region: Region): DemoOffer[] {
+  const { latitude: lat, longitude: lon, latitudeDelta: latD, longitudeDelta: lonD } =
+    region;
+  const dy = latD * 0.34;
+  const dx = lonD * 0.34;
   return [
     {
       id: "demo-1",
-      latitude: lat + 0.0042,
-      longitude: lon - 0.0015,
+      latitude: lat + dy,
+      longitude: lon - dx,
       totalQuantity: 10,
       totalIncome: 3,
     },
     {
       id: "demo-2",
-      latitude: lat - 0.0038,
-      longitude: lon - 0.0055,
+      latitude: lat - dy,
+      longitude: lon - dx,
       totalQuantity: 16,
       totalIncome: 4,
     },
     {
       id: "demo-3",
-      latitude: lat - 0.0025,
-      longitude: lon + 0.0058,
+      latitude: lat - dy,
+      longitude: lon + dx,
       totalQuantity: 20,
       totalIncome: 4.3,
     },
     {
       id: "demo-4",
-      latitude: lat + 0.0032,
-      longitude: lon + 0.0045,
+      latitude: lat + dy,
+      longitude: lon + dx,
       totalQuantity: 12,
       totalIncome: 3.5,
     },
   ];
 }
+
+const MAP_DELTA = 0.03;
 
 function DemoOfferBubble({
   quantity,
@@ -98,8 +103,8 @@ export default function OnboardingMapPreview() {
             setRegion({
               latitude: location.coords.latitude,
               longitude: location.coords.longitude,
-              latitudeDelta: 0.022,
-              longitudeDelta: 0.022,
+              latitudeDelta: MAP_DELTA,
+              longitudeDelta: MAP_DELTA,
             });
           }
           return;
@@ -110,8 +115,8 @@ export default function OnboardingMapPreview() {
       if (!cancelled) {
         setRegion({
           ...FALLBACK_CENTER,
-          latitudeDelta: 0.022,
-          longitudeDelta: 0.022,
+          latitudeDelta: MAP_DELTA,
+          longitudeDelta: MAP_DELTA,
         });
       }
     };
@@ -134,8 +139,8 @@ export default function OnboardingMapPreview() {
         setRegion({
           latitude: location.coords.latitude,
           longitude: location.coords.longitude,
-          latitudeDelta: 0.022,
-          longitudeDelta: 0.022,
+          latitudeDelta: MAP_DELTA,
+          longitudeDelta: MAP_DELTA,
         });
       } catch {
         // Keep current region.
@@ -151,13 +156,7 @@ export default function OnboardingMapPreview() {
   }, [region]);
 
   const offers = useMemo(
-    () =>
-      region
-        ? buildDemoOffers({
-            latitude: region.latitude,
-            longitude: region.longitude,
-          })
-        : [],
+    () => (region ? buildDemoOffers(region) : []),
     [region],
   );
 
