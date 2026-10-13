@@ -78,11 +78,42 @@ function DemoOfferBubble({
   );
 }
 
+/** Matches ReservedOfferMarker on the home map. */
+function DemoReservedBubble({
+  quantity,
+  income,
+}: {
+  quantity: number;
+  income: number;
+}) {
+  return (
+    <View style={styles.markerContainer}>
+      <View style={styles.reservedBubble}>
+        <Text style={styles.reservedLabel} numberOfLines={1}>
+          Twoja rezerwacja
+        </Text>
+        <Text style={styles.reservedBubbleText} numberOfLines={1}>
+          {quantity} sztuk +{formatPrice(income)}
+        </Text>
+      </View>
+      <View style={styles.reservedTriangle} />
+      <View style={styles.reservedMarkerCore} />
+    </View>
+  );
+}
+
+type OnboardingMapPreviewProps = {
+  /** When set, that demo offer uses the green reserved marker style. */
+  reservedOfferId?: string;
+};
+
 /**
- * Real MapView preview for onboarding B1 — same bubble markers as the home map,
+ * Real MapView preview for onboarding — same bubble markers as the home map,
  * centered on the user when possible.
  */
-export default function OnboardingMapPreview() {
+export default function OnboardingMapPreview({
+  reservedOfferId,
+}: OnboardingMapPreviewProps) {
   const [region, setRegion] = useState<Region | null>(null);
   const [tracksViewChanges, setTracksViewChanges] = useState(
     Platform.OS === "android",
@@ -189,23 +220,34 @@ export default function OnboardingMapPreview() {
           moveOnMarkerPress={false}
           liteMode={false}
         >
-          {offers.map((offer) => (
-            <Marker
-              key={offer.id}
-              coordinate={{
-                latitude: offer.latitude,
-                longitude: offer.longitude,
-              }}
-              tracksViewChanges={tracksViewChanges}
-              anchor={{ x: 0.5, y: 1 }}
-              centerOffset={{ x: 0, y: -20 }}
-            >
-              <DemoOfferBubble
-                quantity={offer.totalQuantity}
-                income={offer.totalIncome}
-              />
-            </Marker>
-          ))}
+          {offers.map((offer) => {
+            const isReserved = offer.id === reservedOfferId;
+            return (
+              <Marker
+                key={offer.id}
+                coordinate={{
+                  latitude: offer.latitude,
+                  longitude: offer.longitude,
+                }}
+                tracksViewChanges={tracksViewChanges}
+                anchor={{ x: 0.5, y: 1 }}
+                centerOffset={{ x: 0, y: -20 }}
+                zIndex={isReserved ? 20 : 10}
+              >
+                {isReserved ? (
+                  <DemoReservedBubble
+                    quantity={offer.totalQuantity}
+                    income={offer.totalIncome}
+                  />
+                ) : (
+                  <DemoOfferBubble
+                    quantity={offer.totalQuantity}
+                    income={offer.totalIncome}
+                  />
+                )}
+              </Marker>
+            );
+          })}
         </MapView>
       ) : (
         <View style={styles.placeholder} />
@@ -271,5 +313,50 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary.base,
     borderWidth: 2,
     borderColor: "#FFFFFF",
+  },
+  reservedBubble: {
+    backgroundColor: colors.primary.base,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 12,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.18,
+    shadowRadius: 3,
+    elevation: 5,
+  },
+  reservedLabel: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: colors.text.white,
+    letterSpacing: -0.1,
+  },
+  reservedBubbleText: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: colors.text.white,
+  },
+  reservedTriangle: {
+    width: 0,
+    height: 0,
+    backgroundColor: "transparent",
+    borderStyle: "solid",
+    borderLeftWidth: 6,
+    borderRightWidth: 6,
+    borderBottomWidth: 6,
+    borderLeftColor: "transparent",
+    borderRightColor: "transparent",
+    borderBottomColor: colors.primary.base,
+    transform: [{ rotate: "180deg" }],
+    marginBottom: 2,
+  },
+  reservedMarkerCore: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: colors.text.white,
+    borderWidth: 2,
+    borderColor: colors.primary.base,
   },
 });

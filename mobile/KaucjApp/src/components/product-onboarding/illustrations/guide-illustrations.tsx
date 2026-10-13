@@ -107,16 +107,8 @@ function renderArt(id: GuideIllustrationId) {
         </View>
       );
     case "collectorChat":
-      return (
-        <View style={styles.card}>
-          <View style={styles.mapStubCompact}>
-            <MapPin size={22} color={colors.primary.base} />
-          </View>
-          <View style={styles.chatBubble}>
-            <Text style={styles.chatText}>Podjadę za 10 minut</Text>
-          </View>
-        </View>
-      );
+      // Same map as B1, with one offer styled as the user's reservation.
+      return <OnboardingMapPreview reservedOfferId="demo-3" />;
     case "stats":
       return (
         <View style={styles.card}>
