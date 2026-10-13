@@ -71,7 +71,7 @@ export const productOnboardingCopy = {
     },
     A3: {
       title: "Spotkajcie się i przekażcie opakowania",
-      body: "Kurier przyjeżdża pod wskazany adres. Ustalcie szczegóły w czacie, jeśli coś się zmienia.",
+      body: "Kurier przyjeżdża pod wskazany adres. Ustalcie szczegóły w czacie, jeśli coś się zmienia. Sposób rozliczenia ustalacie między sobą.",
     },
     A4: {
       title: "Potwierdź odbiór",
@@ -87,7 +87,7 @@ export const productOnboardingCopy = {
     },
     B3: {
       title: "Umów się i odbierz",
-      body: "Napisz do wystawiającego, dojedź pod adres i przejmij opakowania.",
+      body: "Napisz do wystawiającego, dojedź pod adres i przejmij opakowania. Sposób rozliczenia ustalacie między sobą.",
     },
     B4: {
       title: "Potwierdź i zapisz w historii",

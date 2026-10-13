@@ -1,6 +1,6 @@
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
-import Animated, { FadeInDown } from "react-native-reanimated";
+import Animated, { FadeIn } from "react-native-reanimated";
 import RoleCard from "./role-card";
 import { AppRole } from "@/src/types/user";
 import { productOnboardingCopy, ROLE_ORDER } from "@/src/constants/product-onboarding/copy";
@@ -39,7 +39,7 @@ export default function RoleSelectScreen({
   if (reduceMotion) return content;
 
   return (
-    <Animated.View entering={FadeInDown.springify().damping(18)}>
+    <Animated.View entering={FadeIn.duration(350)}>
       {content}
     </Animated.View>
   );

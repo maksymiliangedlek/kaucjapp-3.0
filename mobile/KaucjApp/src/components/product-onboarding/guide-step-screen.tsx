@@ -1,6 +1,6 @@
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
-import Animated, { FadeInDown } from "react-native-reanimated";
+import Animated, { FadeIn } from "react-native-reanimated";
 import GuideIllustration from "./illustrations/guide-illustrations";
 import { GuideStepConfig } from "@/src/constants/product-onboarding/steps";
 import { colors, spacing } from "@/src/theme";
@@ -27,7 +27,7 @@ export default function GuideStepScreen({
   return (
     <Animated.View
       key={step.id}
-      entering={FadeInDown.springify().damping(18).delay(40)}
+      entering={FadeIn.duration(350).delay(40)}
     >
       {content}
     </Animated.View>
