@@ -1,9 +1,10 @@
 import React, { useEffect } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import Animated, {
+  Easing,
   useAnimatedStyle,
   useSharedValue,
-  withSpring,
+  withTiming,
 } from "react-native-reanimated";
 import { colors, rounded, spacing } from "@/src/theme";
 import { productOnboardingCopy } from "@/src/constants/product-onboarding/copy";
@@ -39,7 +40,10 @@ function Segment({
   useEffect(() => {
     width.value = reduceMotion
       ? ratio
-      : withSpring(ratio, { damping: 20, stiffness: 180 });
+      : withTiming(ratio, {
+          duration: 250,
+          easing: Easing.out(Easing.quad),
+        });
   }, [ratio, reduceMotion, width]);
 
   const fillStyle = useAnimatedStyle(() => ({

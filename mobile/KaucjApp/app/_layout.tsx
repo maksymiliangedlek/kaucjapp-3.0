@@ -1,4 +1,5 @@
 import { Stack } from "expo-router";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "@/src/api/query-client";
 import { useAuth } from "@/src/auth/use-auth";
@@ -48,9 +49,11 @@ function RootLayoutAuth() {
 
 export default function RootLayout() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <RootLayoutAuth />
-      <OfflineBanner />
-    </QueryClientProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <QueryClientProvider client={queryClient}>
+        <RootLayoutAuth />
+        <OfflineBanner />
+      </QueryClientProvider>
+    </GestureHandlerRootView>
   );
 }
