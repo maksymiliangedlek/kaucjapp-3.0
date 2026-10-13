@@ -1,17 +1,20 @@
 import React, { useEffect, useState } from "react";
-import { LayoutChangeEvent, Pressable, StyleSheet, Text, View } from "react-native";
+import { LayoutChangeEvent, Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import Animated, {
   Extrapolation,
   interpolate,
   runOnJS,
   useAnimatedStyle,
   useSharedValue,
+  withRepeat,
+  withSequence,
   withSpring,
   withTiming,
 } from "react-native-reanimated";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import * as Haptics from "expo-haptics";
 import { MapPin, MessageCircle, Package, Check } from "lucide-react-native";
+import ConfirmationCheck from "@/src/components/ui/confirmation-check";
 import OfferSatusPill from "@/src/components/ui/offer-status-pill";
 import { colors, rounded, shadows, spacing } from "@/src/theme";
 import { GuideIllustrationId } from "@/src/constants/product-onboarding/steps";
@@ -153,64 +156,95 @@ function StepRow({ label, active }: { label: string; active?: boolean }) {
   );
 }
 
+const SLIDER_THUMB_SIZE = 64;
+const SLIDER_COMPLETION_THRESHOLD = 0.85;
+
 function OnboardingSwipeSlider() {
   const [trackWidth, setTrackWidth] = useState(0);
-  const [isCompleted, setIsCompleted] = useState(false);
+  const [sliderState, setSliderState] = useState<"idle" | "loading" | "success">("idle");
+  const isLocked = React.useRef(false);
+
   const translateX = useSharedValue(0);
+  const fillWidth = useSharedValue(SLIDER_THUMB_SIZE);
+  const labelOpacity = useSharedValue(1);
+  const arrowPulse = useSharedValue(0);
 
-  const THUMB_SIZE = 44;
-  const TRACK_PADDING = 4;
-  const maxTravel = Math.max(0, trackWidth - THUMB_SIZE - TRACK_PADDING * 2);
-  const threshold = 0.85;
+  const maxTranslate = Math.max(0, trackWidth - SLIDER_THUMB_SIZE);
 
-  const triggerReset = () => {
+  useEffect(() => {
+    arrowPulse.value = withRepeat(
+      withSequence(
+        withTiming(1, { duration: 800 }),
+        withTiming(0, { duration: 800 }),
+      ),
+      -1,
+      true,
+    );
+  }, [arrowPulse]);
+
+  const resetSlider = React.useCallback(() => {
     translateX.value = withSpring(0, { damping: 15, stiffness: 150 });
-    setIsCompleted(false);
-  };
+    fillWidth.value = withTiming(SLIDER_THUMB_SIZE, { duration: 300 });
+    labelOpacity.value = withTiming(1, { duration: 200 });
+    setSliderState("idle");
+    isLocked.current = false;
+  }, [fillWidth, labelOpacity, translateX]);
+
+  const handleComplete = React.useCallback(() => {
+    isLocked.current = true;
+    translateX.value = withTiming(maxTranslate, { duration: 120 });
+    fillWidth.value = withTiming(trackWidth, { duration: 120 });
+    labelOpacity.value = withTiming(0, { duration: 100 });
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+
+    setSliderState("success");
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+
+    setTimeout(() => {
+      resetSlider();
+    }, 1800);
+  }, [fillWidth, maxTranslate, resetSlider, trackWidth, translateX]);
 
   const panGesture = Gesture.Pan()
-    .enabled(!isCompleted && maxTravel > 0)
+    .enabled(sliderState === "idle" && maxTranslate > 0)
     .activeOffsetX([-6, 6])
     .failOffsetY([-8, 8])
     .onUpdate((e) => {
-      translateX.value = Math.max(0, Math.min(e.translationX, maxTravel));
+      if (isLocked.current) return;
+      const next = Math.max(0, Math.min(e.translationX, maxTranslate));
+      translateX.value = next;
+      fillWidth.value = SLIDER_THUMB_SIZE + next;
+      labelOpacity.value = Math.max(0, 1 - next / (maxTranslate * 0.6));
     })
     .onEnd(() => {
-      if (maxTravel > 0 && translateX.value / maxTravel >= threshold) {
-        translateX.value = withTiming(maxTravel, { duration: 120 });
-        runOnJS(setIsCompleted)(true);
-        runOnJS(Haptics.notificationAsync)(
-          Haptics.NotificationFeedbackType.Success
-        );
+      if (isLocked.current) return;
+      if (maxTranslate > 0 && translateX.value >= maxTranslate * SLIDER_COMPLETION_THRESHOLD) {
+        runOnJS(handleComplete)();
       } else {
+        runOnJS(Haptics.selectionAsync)();
         translateX.value = withSpring(0, { damping: 15, stiffness: 150 });
+        fillWidth.value = withTiming(SLIDER_THUMB_SIZE, { duration: 300 });
+        labelOpacity.value = withTiming(1, { duration: 200 });
       }
     });
 
-  useEffect(() => {
-    if (isCompleted) {
-      const timer = setTimeout(() => {
-        translateX.value = withSpring(0, { damping: 15, stiffness: 150 });
-        setIsCompleted(false);
-      }, 800);
-      return () => clearTimeout(timer);
-    }
-  }, [isCompleted, translateX]);
-
   const thumbAnimatedStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: translateX.value }],
-    backgroundColor: isCompleted ? colors.status.success : colors.primary.base,
+    backgroundColor: sliderState === "success" ? colors.status.success : colors.primary.base,
   }));
 
   const fillAnimatedStyle = useAnimatedStyle(() => ({
-    width: translateX.value + THUMB_SIZE + TRACK_PADDING,
-    backgroundColor: isCompleted ? colors.status.success : colors.primary.base,
+    width: fillWidth.value,
+    backgroundColor: sliderState === "success" ? colors.status.success : colors.primary.base,
   }));
 
   const labelAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: maxTravel > 0
-      ? interpolate(translateX.value, [0, maxTravel * 0.5], [1, 0], Extrapolation.CLAMP)
-      : 1,
+    opacity: labelOpacity.value,
+  }));
+
+  const arrowAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(arrowPulse.value, [0, 1], [0.5, 1]),
+    transform: [{ translateX: interpolate(arrowPulse.value, [0, 1], [0, 4]) }],
   }));
 
   const onLayout = (e: LayoutChangeEvent) => {
@@ -218,26 +252,29 @@ function OnboardingSwipeSlider() {
   };
 
   return (
-    <View style={styles.interactiveSliderTrack} onLayout={onLayout}>
-      <Animated.View
-        style={[styles.interactiveSliderFill, fillAnimatedStyle]}
-      />
-      <Animated.Text
-        style={[styles.interactiveSliderLabel, labelAnimatedStyle]}
-      >
-        Przesuń, aby zarezerwować
-      </Animated.Text>
-      <GestureDetector gesture={panGesture}>
-        <Animated.View
-          style={[styles.interactiveSliderThumb, thumbAnimatedStyle]}
-        >
-          {isCompleted ? (
-            <Check size={20} color={colors.text.white} />
-          ) : (
-            <Text style={styles.interactiveSliderThumbText}>›</Text>
-          )}
-        </Animated.View>
-      </GestureDetector>
+    <View style={styles.sliderHost}>
+      {sliderState === "success" ? (
+        <View style={styles.successOverlay}>
+          <ConfirmationCheck style={{ height: 64, width: 64, marginBottom: 0 }} />
+          <Text style={styles.successTitle}>Zarezerwowano!</Text>
+        </View>
+      ) : (
+        <View style={styles.realSliderWrapper} onLayout={onLayout}>
+          <Animated.View style={[styles.realSliderFill, fillAnimatedStyle]} />
+
+          <Animated.Text style={[styles.realSliderLabel, labelAnimatedStyle]}>
+            Przesuń, aby zarezerwować
+          </Animated.Text>
+
+          <GestureDetector gesture={panGesture}>
+            <Animated.View style={[styles.realSliderThumb, thumbAnimatedStyle]}>
+              <Animated.Text style={[styles.realSliderArrow, arrowAnimatedStyle]}>
+                »
+              </Animated.Text>
+            </Animated.View>
+          </GestureDetector>
+        </View>
+      )}
     </View>
   );
 }
@@ -468,44 +505,69 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: colors.text.primary,
   },
-  interactiveSliderTrack: {
-    height: 52,
-    borderRadius: rounded.pill,
-    backgroundColor: colors.primary.light,
+  sliderHost: {
+    minHeight: 120,
+    justifyContent: "center",
+  },
+  successOverlay: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: spacing.sm,
+    gap: spacing.xs,
+  },
+  successTitle: {
+    fontSize: 20,
+    fontWeight: "800",
+    color: colors.primary.dark,
+    marginTop: -spacing.sm,
+  },
+  realSliderWrapper: {
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: colors.background.subtle,
     justifyContent: "center",
     overflow: "hidden",
-    position: "relative",
+    marginVertical: spacing.xs,
+    ...Platform.select({
+      ios: {
+        shadowColor: colors.primary.base,
+        shadowOffset: { width: 4, height: 4 },
+        shadowOpacity: 0.4,
+        shadowRadius: 12,
+      },
+      android: { elevation: 6 },
+    }),
   },
-  interactiveSliderFill: {
-    position: "absolute",
-    left: 0,
-    top: 0,
-    bottom: 0,
-    borderRadius: rounded.pill,
-    opacity: 0.35,
+  realSliderFill: {
+    ...StyleSheet.absoluteFillObject,
+    right: undefined,
+    borderRadius: 32,
+    opacity: 0.6,
   },
-  interactiveSliderLabel: {
+  realSliderLabel: {
     position: "absolute",
     alignSelf: "center",
-    textAlign: "center",
-    color: colors.primary.dark,
-    fontWeight: "600",
-    fontSize: 13,
+    fontSize: 14,
+    fontWeight: "700",
+    letterSpacing: 0.5,
+    color: colors.text.primary,
+    marginLeft: 32,
   },
-  interactiveSliderThumb: {
+  realSliderThumb: {
     position: "absolute",
-    left: 4,
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: colors.primary.base,
+    left: 0,
+    width: 64,
+    height: 64,
+    borderRadius: 32,
     alignItems: "center",
     justifyContent: "center",
   },
-  interactiveSliderThumbText: {
-    color: colors.text.white,
-    fontSize: 22,
-    fontWeight: "700",
+  realSliderArrow: {
+    color: "#fff",
+    fontSize: 28,
+    fontWeight: "800",
+    lineHeight: 32,
+    marginLeft: 2,
   },
   statsContainer: {
     gap: spacing.sm,
