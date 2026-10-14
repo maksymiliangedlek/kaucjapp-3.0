@@ -2,7 +2,7 @@ import React, { useMemo } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useRouter } from "expo-router";
 import * as Haptics from "expo-haptics";
-import { Cube, MapPin, Package } from "lucide-react-native";
+import { Box, MapPin, Package } from "lucide-react-native";
 import { AppRole } from "@/src/types/user";
 import { colors, rounded, shadows, spacing } from "@/src/theme";
 
@@ -46,7 +46,7 @@ export default function QuickActions({ appRole }: QuickActionsProps) {
     machines: {
       title: "Kaucjomaty",
       subtitle: "Mapa punktów",
-      Icon: Cube,
+      Icon: Box,
       onPress: () => {
         Haptics.selectionAsync();
         router.push({
