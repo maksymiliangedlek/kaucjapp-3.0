@@ -16,11 +16,11 @@ import Animated, {
 } from "react-native-reanimated";
 import Slider from "@react-native-community/slider";
 import { AnimatedRollingNumber } from "react-native-animated-rolling-numbers";
-import { BottleWine } from "lucide-react-native";
 import { colors, rounded, shadows, spacing } from "@/src/theme";
 import { OfferFormValues, PRICE_MAX } from "@/src/validation";
 import { computeOfferTotals } from "@/src/hooks/use-offer-creator";
 import { layoutSpring } from "@/src/constants";
+import BottleIcon from "./bottle-icon";
 import CanIcon from "./can-icon";
 
 type ItemKey = "plastic" | "cans";
@@ -37,7 +37,7 @@ const ROWS: readonly RowConfig[] = [
   {
     id: "plastic",
     title: "Butelki plastikowe",
-    Icon: BottleWine,
+    Icon: BottleIcon,
     quantityField: "plasticBottles",
     priceField: "plasticPrice",
   },
