@@ -2,11 +2,11 @@ import React, { useMemo } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useRouter } from "expo-router";
 import * as Haptics from "expo-haptics";
-import { MapPin, Package } from "lucide-react-native";
+import { Cube, MapPin, Package } from "lucide-react-native";
 import { AppRole } from "@/src/types/user";
 import { colors, rounded, shadows, spacing } from "@/src/theme";
 
-type ActionId = "list" | "find";
+type ActionId = "list" | "find" | "machines";
 
 interface QuickActionsProps {
   appRole: AppRole | null | undefined;
@@ -16,9 +16,9 @@ export default function QuickActions({ appRole }: QuickActionsProps) {
   const router = useRouter();
 
   const order = useMemo<ActionId[]>(() => {
-    // OFFERER / BOTH: Wystaw first; COLLECTOR: Znajdź first
-    if (appRole === "COLLECTOR") return ["find", "list"];
-    return ["list", "find"];
+    // OFFERER / BOTH: Wystaw first; COLLECTOR: Znajdź first. Kaucjomaty always last.
+    if (appRole === "COLLECTOR") return ["find", "list", "machines"];
+    return ["list", "find", "machines"];
   }, [appRole]);
 
   const actions: Record<
@@ -41,6 +41,18 @@ export default function QuickActions({ appRole }: QuickActionsProps) {
       onPress: () => {
         Haptics.selectionAsync();
         router.push("/(app)/(tabs)/home");
+      },
+    },
+    machines: {
+      title: "Kaucjomaty",
+      subtitle: "Mapa punktów",
+      Icon: Cube,
+      onPress: () => {
+        Haptics.selectionAsync();
+        router.push({
+          pathname: "/(app)/(tabs)/home",
+          params: { filter: "machines" },
+        });
       },
     },
   };
@@ -84,10 +96,13 @@ const styles = StyleSheet.create({
   },
   row: {
     flexDirection: "row",
+    flexWrap: "wrap",
     gap: spacing.sm,
   },
   card: {
-    flex: 1,
+    flexGrow: 1,
+    flexBasis: "45%",
+    minWidth: "45%",
     backgroundColor: colors.background.card,
     borderRadius: rounded.xl,
     borderWidth: 1,
