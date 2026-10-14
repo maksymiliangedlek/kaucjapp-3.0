@@ -11,6 +11,7 @@ import Animated, { Easing, FadeInUp } from "react-native-reanimated";
 import MapView, { Marker, PROVIDER_DEFAULT } from "react-native-maps";
 import AnimatedRollingNumber from "react-native-animated-rolling-numbers";
 import { useFormContext, useWatch } from "react-hook-form";
+import { Recycle } from "lucide-react-native";
 import { colors, rounded, spacing } from "@/src/theme";
 import { OfferFormValues } from "@/src/validation";
 import { computeOfferTotals } from "@/src/hooks/use-offer-creator";
@@ -44,7 +45,9 @@ export default function Step3Summary({
         style={styles.summaryCard}
       >
         <View style={styles.cardHeader}>
-          <Text style={styles.cardHeaderIcon}>♻️</Text>
+          <View style={styles.cardHeaderIconWrap}>
+            <Recycle size={18} color={colors.primary.dark} />
+          </View>
           <Text style={styles.cardHeaderTitle}>Co trafia do recyklingu</Text>
         </View>
 
@@ -237,6 +240,14 @@ const styles = StyleSheet.create({
   },
   cardHeaderIcon: {
     fontSize: 18,
+  },
+  cardHeaderIconWrap: {
+    width: 28,
+    height: 28,
+    borderRadius: 8,
+    backgroundColor: colors.primary.light,
+    alignItems: "center",
+    justifyContent: "center",
   },
   cardHeaderTitle: {
     fontSize: 16,

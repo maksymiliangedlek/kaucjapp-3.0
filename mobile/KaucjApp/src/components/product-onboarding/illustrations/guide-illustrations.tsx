@@ -13,15 +13,23 @@ import Animated, {
 } from "react-native-reanimated";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import * as Haptics from "expo-haptics";
-import { MapPin, MessageCircle, Package, Check } from "lucide-react-native";
+import { MessageCircle, Package, Check } from "lucide-react-native";
 import ConfirmationCheck from "@/src/components/ui/confirmation-check";
 import OfferSatusPill from "@/src/components/ui/offer-status-pill";
 import OnboardingMapPreview, {
   DEMO_RESERVED_OFFER_ID,
 } from "./onboarding-map-preview";
+import OnboardingCreateOfferPreview from "./onboarding-create-offer-preview";
+import MiniMap from "@/src/components/profile/reserved-offers/mini-map";
 import { colors, rounded, shadows, spacing } from "@/src/theme";
 import { GuideIllustrationId } from "@/src/constants/product-onboarding/steps";
 import { OfferStatus } from "@/src/types";
+
+/** Krakow Old Town — same fallback as other onboarding maps. */
+const KRAKOW_CENTER = {
+  latitude: 50.0614,
+  longitude: 19.9373,
+};
 
 interface IllustrationProps {
   id: GuideIllustrationId;
@@ -47,14 +55,7 @@ export default function GuideIllustration({
 function renderArt(id: GuideIllustrationId) {
   switch (id) {
     case "createOffer":
-      return (
-        <View style={styles.card}>
-          <StepRow label="Ilość" active />
-          <StepRow label="Lokalizacja" />
-          <StepRow label="Publikuj" />
-          <Text style={styles.cardHint}>3 kroki do otwartej oferty</Text>
-        </View>
-      );
+      return <OnboardingCreateOfferPreview />;
     case "reservedChat":
       return (
         <View style={styles.card}>
@@ -76,10 +77,15 @@ function renderArt(id: GuideIllustrationId) {
     case "meetup":
       return (
         <View style={styles.card}>
-          <View style={styles.mapStub}>
-            <MapPin size={28} color={colors.primary.base} />
-            <Text style={styles.mapLabel}>Punkt odbioru</Text>
-          </View>
+          <MiniMap
+            latitude={KRAKOW_CENTER.latitude}
+            longitude={KRAKOW_CENTER.longitude}
+            height={120}
+            interactive={false}
+            pointerEvents="none"
+            style={styles.meetupMap}
+          />
+          <Text style={styles.mapLabel}>Punkt odbioru</Text>
           <View style={[styles.chatBubble, styles.chatBubbleOut]}>
             <Text style={styles.chatText}>Jestem już na miejscu!</Text>
           </View>
@@ -128,17 +134,6 @@ function renderArt(id: GuideIllustrationId) {
         </View>
       );
   }
-}
-
-function StepRow({ label, active }: { label: string; active?: boolean }) {
-  return (
-    <View style={styles.stepRow}>
-      <View style={[styles.stepDot, active && styles.stepDotActive]} />
-      <Text style={[styles.stepLabel, active && styles.stepLabelActive]}>
-        {label}
-      </Text>
-    </View>
-  );
 }
 
 const SLIDER_THUMB_SIZE = 64;
@@ -342,28 +337,6 @@ const styles = StyleSheet.create({
     color: colors.text.secondary,
     marginTop: spacing.xs,
   },
-  stepRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.sm,
-  },
-  stepDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: colors.status.border,
-  },
-  stepDotActive: {
-    backgroundColor: colors.primary.base,
-  },
-  stepLabel: {
-    fontSize: 15,
-    color: colors.text.secondary,
-  },
-  stepLabelActive: {
-    color: colors.text.primary,
-    fontWeight: "700",
-  },
   profileRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -408,25 +381,15 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.text.primary,
   },
-  mapStub: {
-    height: 110,
-    borderRadius: rounded.lg,
-    backgroundColor: colors.primary.light,
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 6,
-  },
-  mapStubCompact: {
-    height: 72,
-    borderRadius: rounded.lg,
-    backgroundColor: colors.primary.light,
-    alignItems: "center",
-    justifyContent: "center",
-  },
   mapLabel: {
     fontSize: 13,
     color: colors.primary.dark,
     fontWeight: "600",
+    textAlign: "center",
+  },
+  meetupMap: {
+    width: "100%",
+    borderRadius: rounded.lg,
   },
   confirmCard: {
     alignItems: "center",

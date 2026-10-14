@@ -43,7 +43,7 @@ export const offerFormSchema = z
 
 export type OfferFormValues = z.infer<typeof offerFormSchema>;
 export const defaultOfferFormValues: OfferFormValues = {
-  plasticBottles: 10,
+  plasticBottles: 0,
   cans: 0,
   plasticPrice: 0.2,
   cansPrice: 0.2,
