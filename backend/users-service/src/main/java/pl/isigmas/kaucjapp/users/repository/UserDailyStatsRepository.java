@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import pl.isigmas.kaucjapp.users.DTO.DailyStatRow;
 import pl.isigmas.kaucjapp.users.DTO.DailyStatsCounts;
 import pl.isigmas.kaucjapp.users.DTO.UserDailyStatsCounts;
 import pl.isigmas.kaucjapp.users.model.UserStats;
@@ -60,6 +61,20 @@ public interface UserDailyStatsRepository extends JpaRepository<UserStats, Long>
             WHERE user_id = :userId AND stat_date >= :startDate AND stat_date <= :endDate
             """, nativeQuery = true)
     DailyStatsCounts getStatsForPeriod(
+            @Param("userId") Long userId,
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate
+    );
+
+    @Query(value = """
+            SELECT
+                stat_date AS statDate,
+                (returned_plastic_count + returned_can_count)::bigint AS returnedTotal
+            FROM user_daily_stats
+            WHERE user_id = :userId AND stat_date >= :startDate AND stat_date <= :endDate
+            ORDER BY stat_date ASC
+            """, nativeQuery = true)
+    List<DailyStatRow> findDailySeries(
             @Param("userId") Long userId,
             @Param("startDate") LocalDate startDate,
             @Param("endDate") LocalDate endDate

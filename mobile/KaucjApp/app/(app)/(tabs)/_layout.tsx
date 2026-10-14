@@ -7,6 +7,15 @@ export default function TabsLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <NativeTabs>
+        <NativeTabs.Trigger name="start">
+          <Label selectedStyle={{ color: colors.primary.base }}>Start</Label>
+          <Icon
+            selectedColor={colors.primary.base}
+            sf={{ default: "house", selected: "house.fill" }}
+            drawable="home"
+          />
+        </NativeTabs.Trigger>
+
         <NativeTabs.Trigger name="home">
           <Label selectedStyle={{ color: colors.primary.base }}>Mapa</Label>
           <Icon
@@ -22,6 +31,18 @@ export default function TabsLayout() {
             selectedColor={colors.primary.base}
             sf={{ default: "plus.circle", selected: "plus.circle.fill" }}
             drawable="plus.circle.fill"
+          />
+        </NativeTabs.Trigger>
+
+        <NativeTabs.Trigger name="chat">
+          <Label selectedStyle={{ color: colors.primary.base }}>Czat</Label>
+          <Icon
+            selectedColor={colors.primary.base}
+            sf={{
+              default: "bubble.left.and.bubble.right",
+              selected: "bubble.left.and.bubble.right.fill",
+            }}
+            drawable="chat"
           />
         </NativeTabs.Trigger>
 

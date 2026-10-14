@@ -29,6 +29,7 @@ public class PushService {
     private final ExpoPushClient expoPushClient;
     private final PushTokenRepository pushTokenRepository;
     private final PushRetryTaskRepository pushRetryTaskRepository;
+    private final UserNotificationInboxService inboxService;
     private final Logger logger;
 
     public void registerToken(Long userId, String token, String platform) {
@@ -52,12 +53,18 @@ public class PushService {
 
     public void deleteUserTokens(Long userId) {
         int removed = pushTokenRepository.deleteByUserId(userId);
+        inboxService.deleteForUser(userId);
         log.info("Removed {} push tokens for deleted user ID: {}", removed, userId);
         logger.info("Removed %d push tokens for deleted user ID: %d".formatted(removed, userId));
     }
 
-    /** Sends the notification to every device of the user; on a transient Expo failure a retry task is stored. */
+    /** Persists inbox row, then sends the notification to every device of the user; on a transient Expo failure a retry task is stored. */
     public void sendToUser(Long userId, String title, String body, Map<String, String> data) {
+        try {
+            inboxService.record(userId, title, body, data);
+        } catch (RuntimeException e) {
+            log.error("Failed to persist inbox notification for user ID: {}", userId, e);
+        }
         if (!deliver(userId, title, body, data)) {
             scheduleRetry(userId, title, body, data);
         }

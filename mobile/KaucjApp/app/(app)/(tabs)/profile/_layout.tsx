@@ -1,6 +1,7 @@
 import { Stack } from "expo-router";
+import StackHeaderBack from "@/src/components/navigation/stack-header-back";
 
-export default function HomeLayout() {
+export default function ProfileLayout() {
   return (
     <Stack>
       <Stack.Screen
@@ -15,6 +16,7 @@ export default function HomeLayout() {
           headerTitle: "Ustawienia",
           headerBackButtonDisplayMode: "minimal",
           headerTransparent: true,
+          headerLeft: () => <StackHeaderBack fallbackHref="/profile" />,
         }}
       />
 
@@ -46,6 +48,7 @@ export default function HomeLayout() {
           headerTitle: "Ranking",
           headerBackButtonDisplayMode: "minimal",
           headerTransparent: true,
+          headerLeft: () => <StackHeaderBack fallbackHref="/profile" />,
         }}
       />
 
@@ -56,6 +59,7 @@ export default function HomeLayout() {
           headerTitle: "FAQ",
           headerBackButtonDisplayMode: "minimal",
           headerTransparent: true,
+          headerLeft: () => <StackHeaderBack fallbackHref="/profile" />,
         }}
       />
 

@@ -118,6 +118,24 @@ public class UserController {
         return ResponseEntity.ok(userPeriodStatsService.getStatsForLastDays(myUserId, days));
     }
 
+    @GetMapping("/me/stats/daily")
+    @Operation(
+            summary = "Get my daily returned-stats series",
+            description = "One point per calendar day (UTC) for the last `days` days, including zeros for missing buckets. "
+                    + "Used by the Start screen sparkline.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "UserDailyStatsSeriesDTO."),
+            @ApiResponse(responseCode = "400", description = "Invalid days (1–365) or missing X-User-Id."),
+            @ApiResponse(responseCode = "404", description = "User not found (USER_001).")
+    })
+    public ResponseEntity<UserDailyStatsSeriesDTO> getMyDailyStats(
+            @RequestHeader("X-User-Id") Long myUserId,
+            @RequestParam(defaultValue = "30") int days) {
+        log.info("Fetching daily stats series for user {} (last {} days)", myUserId, days);
+        logger.info("Fetching daily stats series for user %d (last %d days)".formatted(myUserId, days));
+        return ResponseEntity.ok(userPeriodStatsService.getDailySeriesForLastDays(myUserId, days));
+    }
+
     @GetMapping("/{id}/stats/period")
     @Operation(
             summary = "Get user activity stats for a recent period",

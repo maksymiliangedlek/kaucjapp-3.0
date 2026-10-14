@@ -9,6 +9,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import pl.isigmas.kaucjapp.notification.service.PushService;
+import pl.isigmas.kaucjapp.notification.service.UserNotificationInboxService;
 import pl.isigmas.kaucjapp.notification.service.WarningService;
 
 import static org.mockito.Mockito.never;
@@ -25,12 +26,16 @@ class NotificationControllerTest {
     private WarningService warningService;
     @Mock
     private PushService pushService;
+    @Mock
+    private UserNotificationInboxService inboxService;
 
     private MockMvc mockMvc;
 
     @BeforeEach
     void setUp() {
-        mockMvc = MockMvcBuilders.standaloneSetup(new NotificationController(warningService, pushService)).build();
+        mockMvc = MockMvcBuilders.standaloneSetup(
+                new NotificationController(warningService, pushService, inboxService)
+        ).build();
     }
 
     @Test

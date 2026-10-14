@@ -5,7 +5,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pl.isigmas.kaucjapp.common.logger.Logger;
+import pl.isigmas.kaucjapp.users.DTO.DailyStatRow;
 import pl.isigmas.kaucjapp.users.DTO.DailyStatsCounts;
+import pl.isigmas.kaucjapp.users.DTO.UserDailyStatPointDTO;
+import pl.isigmas.kaucjapp.users.DTO.UserDailyStatsSeriesDTO;
 import pl.isigmas.kaucjapp.users.DTO.UserPeriodStatsDTO;
 import pl.isigmas.kaucjapp.users.exception.InvalidStatsPeriodException;
 import pl.isigmas.kaucjapp.users.exception.UserNotFoundException;
@@ -15,6 +18,10 @@ import pl.isigmas.kaucjapp.users.repository.UserRepository;
 
 import java.time.LocalDate;
 import java.time.ZoneOffset;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Service
@@ -33,6 +40,31 @@ public class UserPeriodStatsService {
         LocalDate end = LocalDate.now(ZoneOffset.UTC);
         LocalDate start = end.minusDays(days - 1L);
         return getStatsForPeriod(userId, start, end, days);
+    }
+
+    @Transactional(readOnly = true)
+    public UserDailyStatsSeriesDTO getDailySeriesForLastDays(Long userId, int days) {
+        validatePeriodDays(days);
+        if (!userRepository.existsById(userId)) {
+            log.warn("User not found, ID: {}", userId);
+            logger.warn("User not found, ID: %d".formatted(userId));
+            throw new UserNotFoundException(userId);
+        }
+        LocalDate end = LocalDate.now(ZoneOffset.UTC);
+        LocalDate start = end.minusDays(days - 1L);
+        List<DailyStatRow> rows = userDailyStatsRepository.findDailySeries(userId, start, end);
+        Map<LocalDate, Long> byDate = new HashMap<>();
+        for (DailyStatRow row : rows) {
+            byDate.put(row.getStatDate(), row.getReturnedTotal() == null ? 0L : row.getReturnedTotal());
+        }
+        List<UserDailyStatPointDTO> points = new ArrayList<>(days);
+        for (LocalDate d = start; !d.isAfter(end); d = d.plusDays(1)) {
+            points.add(UserDailyStatPointDTO.builder()
+                    .date(d)
+                    .returnedTotalCount(byDate.getOrDefault(d, 0L))
+                    .build());
+        }
+        return UserDailyStatsSeriesDTO.builder().days(points).build();
     }
 
     @Transactional(readOnly = true)

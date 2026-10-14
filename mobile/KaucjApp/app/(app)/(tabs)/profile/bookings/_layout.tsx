@@ -1,11 +1,7 @@
-import { colors } from "@/src/theme";
-import { HeaderBackButton } from "@react-navigation/elements";
-import { Stack, useRouter } from "expo-router";
-import { Info } from "lucide-react-native";
+import { Stack } from "expo-router";
+import StackHeaderBack from "@/src/components/navigation/stack-header-back";
 
 export default function BookingsLayout() {
-  const router = useRouter();
-
   return (
     <Stack>
       <Stack.Screen
@@ -15,24 +11,7 @@ export default function BookingsLayout() {
           headerTitle: "Moje rezerwacje",
           headerLargeTitleEnabled: true,
           headerBackButtonDisplayMode: "minimal",
-
-          headerLeft: () => (
-            <HeaderBackButton
-              tintColor={colors.text.primary}
-              labelStyle={{
-                fontSize: 16,
-                fontWeight: "600",
-                color: colors.text.primary,
-              }}
-              onPress={() => {
-                if (router.canGoBack()) {
-                  router.back();
-                } else {
-                  router.replace("/profile");
-                }
-              }}
-            />
-          ),
+          headerLeft: () => <StackHeaderBack fallbackHref="/profile" />,
         }}
       />
       <Stack.Screen
@@ -41,6 +20,7 @@ export default function BookingsLayout() {
           headerTitle: "Szczegóły rezerwacji",
           headerLargeTitleEnabled: false,
           headerBackButtonDisplayMode: "minimal",
+          headerLeft: () => <StackHeaderBack />,
         }}
       />
 
@@ -52,6 +32,7 @@ export default function BookingsLayout() {
           headerBackButtonDisplayMode: "minimal",
           headerTransparent: true,
           headerShadowVisible: false,
+          headerLeft: () => <StackHeaderBack />,
         }}
       />
 
@@ -66,6 +47,7 @@ export default function BookingsLayout() {
           sheetGrabberVisible: true,
           sheetAllowedDetents: [1],
           contentStyle: { backgroundColor: "transparent" },
+          headerLeft: () => <StackHeaderBack />,
         }}
       />
 

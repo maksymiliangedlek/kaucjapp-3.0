@@ -38,6 +38,8 @@ class PushServiceTest {
     @Mock
     private PushRetryTaskRepository pushRetryTaskRepository;
     @Mock
+    private UserNotificationInboxService inboxService;
+    @Mock
     private Logger logger;
 
     @InjectMocks
@@ -63,11 +65,12 @@ class PushServiceTest {
     }
 
     @Test
-    void sendToUser_withoutTokens_doesNothing() {
+    void sendToUser_withoutTokens_persistsInboxButDoesNotPush() {
         when(pushTokenRepository.findByUserId(1L)).thenReturn(List.of());
 
         pushService.sendToUser(1L, "T", "B", DATA);
 
+        verify(inboxService).record(1L, "T", "B", DATA);
         verifyNoInteractions(expoPushClient, pushRetryTaskRepository);
     }
 

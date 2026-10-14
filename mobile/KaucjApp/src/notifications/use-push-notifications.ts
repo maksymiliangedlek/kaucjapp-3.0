@@ -3,6 +3,7 @@ import * as Notifications from "expo-notifications";
 import { router, useGlobalSearchParams, usePathname } from "expo-router";
 import { useEffect } from "react";
 import { offerKeys } from "@/src/api/hooks/use-offer";
+import { notificationKeys } from "@/src/api/hooks/use-notifications";
 import { userKeys } from "@/src/api/hooks/use-user";
 import { PushData } from "@/src/types/notification";
 import { registerForPushNotifications } from "./push-registration";
@@ -78,6 +79,9 @@ export const usePushNotifications = (
           queryClient.invalidateQueries({ queryKey: userKeys.all });
         } else if (type) {
           queryClient.invalidateQueries({ queryKey: offerKeys.all });
+        }
+        if (type) {
+          queryClient.invalidateQueries({ queryKey: notificationKeys.all });
         }
       },
     );
