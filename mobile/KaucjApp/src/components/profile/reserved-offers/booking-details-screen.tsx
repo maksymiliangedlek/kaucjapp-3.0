@@ -8,13 +8,16 @@ import LoadingState from "@/src/components/states/loading-state";
 import { colors, spacing } from "@/src/theme";
 
 import BookingDetailsContent from "./booking-details-content";
+import { BookingBasePath } from "./booking-routes";
 
 interface BookingDetailsScreenProps {
   offerId: number;
+  basePath?: BookingBasePath;
 }
 
 export default function BookingDetailsScreen({
   offerId,
+  basePath = "/profile/bookings",
 }: BookingDetailsScreenProps) {
   const {
     data: offer,
@@ -65,7 +68,7 @@ export default function BookingDetailsScreen({
         />
       }
     >
-      <BookingDetailsContent offer={offer} basePath="/profile/bookings" />
+      <BookingDetailsContent offer={offer} basePath={basePath} />
     </ScrollView>
   );
 }

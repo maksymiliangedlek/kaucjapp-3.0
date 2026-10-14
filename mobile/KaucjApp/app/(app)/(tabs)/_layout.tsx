@@ -46,7 +46,7 @@ export default function TabsLayout() {
           />
         </NativeTabs.Trigger>
 
-        <NativeTabs.Trigger name="profile">
+        <NativeTabs.Trigger name="profile" disablePopToTop>
           <Label selectedStyle={{ color: colors.primary.base }}>Profil</Label>
           <Icon
             selectedColor={colors.primary.base}

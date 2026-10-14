@@ -1,12 +1,15 @@
-import { Pressable, StyleSheet, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { usePathname, router } from "expo-router";
-import { Feather } from "@expo/vector-icons";
+import { ChevronLeft } from "lucide-react-native";
+import * as Haptics from "expo-haptics";
+import { BlurView } from "expo-blur";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import CircleChromeButton from "@/src/components/ui/circle-chrome-button";
 import { colors, spacing } from "@/src/theme";
 import { SIGN_UP_STEPS } from "@/src/validation";
 import { StepProgress } from "./step-progress";
 
-export const SIGN_UP_CHROME_HEIGHT = 52;
+export const SIGN_UP_CHROME_HEIGHT = 56;
 
 export function signUpStepIndex(pathname: string) {
   const index = SIGN_UP_STEPS.findIndex(
@@ -25,20 +28,31 @@ export function SignUpChrome() {
       pointerEvents="box-none"
       style={[styles.wrap, { paddingTop: insets.top }]}
     >
-      <View style={styles.row}>
-        <Pressable
-          onPress={() => router.back()}
-          hitSlop={12}
-          accessibilityRole="button"
-          accessibilityLabel="Wstecz"
-          style={styles.back}
-        >
-          <Feather name="chevron-left" size={28} color={colors.text.primary} />
-        </Pressable>
-        <View style={styles.progress}>
-          <StepProgress index={index} />
+      <BlurView intensity={28} tint="light" style={styles.blur}>
+        <View style={styles.row}>
+          <CircleChromeButton
+            accessibilityLabel="Wstecz"
+            onPress={() => {
+              Haptics.selectionAsync();
+              if (router.canGoBack()) {
+                router.back();
+                return;
+              }
+              router.replace("/sign-in");
+            }}
+          >
+            <ChevronLeft
+              size={26}
+              color={colors.text.primary}
+              strokeWidth={2.25}
+              style={styles.chevron}
+            />
+          </CircleChromeButton>
+          <View style={styles.progress}>
+            <StepProgress index={index} />
+          </View>
         </View>
-      </View>
+      </BlurView>
     </View>
   );
 }
@@ -51,17 +65,21 @@ const styles = StyleSheet.create({
     right: 0,
     zIndex: 2,
   },
+  blur: {
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colors.status.border,
+    backgroundColor: "rgba(246,247,244,0.72)",
+  },
   row: {
-    height: SIGN_UP_CHROME_HEIGHT,
+    minHeight: SIGN_UP_CHROME_HEIGHT,
     flexDirection: "row",
     alignItems: "center",
-    paddingRight: spacing.lg,
+    gap: spacing.sm,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
   },
-  back: {
-    width: 52,
-    height: 44,
-    alignItems: "center",
-    justifyContent: "center",
+  chevron: {
+    marginLeft: -1,
   },
   progress: {
     flex: 1,

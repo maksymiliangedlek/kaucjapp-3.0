@@ -1,6 +1,12 @@
 import React from "react";
 import { StyleSheet, Text, ActivityIndicator, Pressable } from "react-native";
 import * as Haptics from "expo-haptics";
+import Animated, {
+  useAnimatedStyle,
+  useReducedMotion,
+  useSharedValue,
+  withSpring,
+} from "react-native-reanimated";
 import { colors, rounded, spacing } from "@/src/theme";
 
 interface AuthButtonProps {
@@ -10,6 +16,8 @@ interface AuthButtonProps {
   disabled?: boolean;
 }
 
+const PRESS_SPRING = { damping: 20, stiffness: 420, mass: 0.55 };
+
 export function AuthButton({
   onPress,
   label,
@@ -17,6 +25,20 @@ export function AuthButton({
   disabled,
 }: AuthButtonProps) {
   const isDisabled = !!disabled || !!isLoading;
+  const reduceMotion = useReducedMotion();
+  const scale = useSharedValue(1);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  const setPressed = (pressed: boolean) => {
+    if (isDisabled) return;
+    const next = pressed ? 0.97 : 1;
+    scale.value = reduceMotion
+      ? next
+      : withSpring(next, PRESS_SPRING);
+  };
 
   const handlePress = () => {
     if (isDisabled) return;
@@ -25,18 +47,25 @@ export function AuthButton({
   };
 
   return (
-    <Pressable
-      onPress={handlePress}
-      disabled={isDisabled}
-      accessibilityState={{ disabled: isDisabled }}
-      style={[styles.button, disabled && styles.disabled]}
-    >
-      {isLoading ? (
-        <ActivityIndicator color={colors.text.white} />
-      ) : (
-        <Text style={[styles.text, disabled && styles.textDisabled]}>{label}</Text>
-      )}
-    </Pressable>
+    <Animated.View style={animatedStyle}>
+      <Pressable
+        onPress={handlePress}
+        onPressIn={() => setPressed(true)}
+        onPressOut={() => setPressed(false)}
+        disabled={isDisabled}
+        accessibilityRole="button"
+        accessibilityState={{ disabled: isDisabled }}
+        style={[styles.button, disabled && styles.disabled]}
+      >
+        {isLoading ? (
+          <ActivityIndicator color={colors.text.white} />
+        ) : (
+          <Text style={[styles.text, disabled && styles.textDisabled]}>
+            {label}
+          </Text>
+        )}
+      </Pressable>
+    </Animated.View>
   );
 }
 

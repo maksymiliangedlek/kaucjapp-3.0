@@ -9,7 +9,10 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { MessageCircle } from "lucide-react-native";
 import { useRouter } from "expo-router";
+import * as Haptics from "expo-haptics";
+import { useAuth } from "@/src/auth/use-auth";
 import { useMyOffers, useMyReservedOffers } from "@/src/api/hooks/use-offer";
+import { chatPathForPerspective } from "@/src/hooks/use-start-attention";
 import { formatOfferItemsLabel, isAttentionOffer } from "@/src/lib/start-utils";
 import { colors, rounded, spacing } from "@/src/theme";
 import { Offer } from "@/src/types";
@@ -23,8 +26,10 @@ type ChatRow = {
 export default function ChatListScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const { user } = useAuth();
   const myOffers = useMyOffers();
   const reserved = useMyReservedOffers();
+  const appRole = user?.appRole;
 
   const rows = useMemo<ChatRow[]>(() => {
     const created = (myOffers.data ?? [])
@@ -44,6 +49,27 @@ export default function ChatListScreen() {
     );
   }, [myOffers.data, reserved.data]);
 
+  const emptyCta =
+    appRole === "COLLECTOR"
+      ? {
+          label: "Zobacz oferty w okolicy",
+          onPress: () => {
+            Haptics.selectionAsync();
+            router.push({
+              pathname: "/(app)/(tabs)/home",
+              params: { filter: "offers" },
+            });
+          },
+        }
+      : {
+          // OFFERER, BOTH, or unset — primary path is listing
+          label: "Wystaw ofertę",
+          onPress: () => {
+            Haptics.selectionAsync();
+            router.push("/(app)/(tabs)/create");
+          },
+        };
+
   return (
     <FlatList
       data={rows}
@@ -62,19 +88,26 @@ export default function ChatListScreen() {
           <Text style={styles.emptyBody}>
             Czat pojawi się, gdy oferta zostanie zarezerwowana.
           </Text>
+          <Pressable
+            style={styles.emptyCta}
+            onPress={emptyCta.onPress}
+            accessibilityRole="button"
+            accessibilityLabel={emptyCta.label}
+          >
+            <Text style={styles.emptyCtaText}>{emptyCta.label}</Text>
+          </Pressable>
         </View>
       }
       renderItem={({ item }) => (
         <Pressable
           style={styles.row}
           onPress={() => {
-            router.push({
-              pathname:
-                item.perspective === "creator"
-                  ? "/profile/offers/chat"
-                  : "/profile/bookings/chat",
-              params: { offerId: String(item.offer.offerId) },
-            });
+            router.push(
+              chatPathForPerspective(
+                item.perspective,
+                item.offer.offerId,
+              ),
+            );
           }}
           accessibilityRole="button"
           accessibilityLabel={`Czat: ${formatOfferItemsLabel(item.offer)}`}
@@ -113,6 +146,20 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.text.secondary,
     textAlign: "center",
+  },
+  emptyCta: {
+    marginTop: spacing.md,
+    minHeight: 48,
+    paddingHorizontal: spacing.lg,
+    borderRadius: rounded.xl,
+    backgroundColor: colors.primary.base,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  emptyCtaText: {
+    color: colors.text.white,
+    fontSize: 16,
+    fontWeight: "700",
   },
   row: {
     flexDirection: "row",

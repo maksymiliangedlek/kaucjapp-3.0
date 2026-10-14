@@ -4,15 +4,17 @@ import Animated, {
   cancelAnimation,
   useAnimatedStyle,
   useReducedMotion,
-  withTiming,
+  withSpring,
 } from "react-native-reanimated";
-import { colors } from "@/src/theme";
+import { colors, rounded } from "@/src/theme";
 import { SIGN_UP_STEPS } from "@/src/validation";
 import { signUpProgress } from "./sign-up-progress";
 
 type Props = {
   index: number;
 };
+
+const PROGRESS_SPRING = { damping: 18, stiffness: 220, mass: 0.7 };
 
 export function StepProgress({ index }: Props) {
   const reduceMotion = useReducedMotion();
@@ -24,7 +26,8 @@ export function StepProgress({ index }: Props) {
       signUpProgress.value = target;
       return;
     }
-    signUpProgress.value = withTiming(target, { duration: 200 });
+    // Soft bounce when the fill advances between steps.
+    signUpProgress.value = withSpring(target, PROGRESS_SPRING);
   }, [reduceMotion, target]);
 
   const fillStyle = useAnimatedStyle(() => ({
@@ -48,14 +51,14 @@ export function StepProgress({ index }: Props) {
 
 const styles = StyleSheet.create({
   track: {
-    height: 3,
-    borderRadius: 2,
+    height: 6,
+    borderRadius: rounded.pill,
     backgroundColor: colors.status.border,
     overflow: "hidden",
   },
   fill: {
     height: "100%",
-    borderRadius: 2,
+    borderRadius: rounded.pill,
     backgroundColor: colors.primary.base,
   },
 });

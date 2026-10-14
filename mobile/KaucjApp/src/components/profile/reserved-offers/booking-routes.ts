@@ -1,4 +1,7 @@
-export type BookingBasePath = "/profile/bookings" | "/home";
+export type BookingBasePath =
+  | "/profile/bookings"
+  | "/home"
+  | "/start/bookings";
 
 export function bookingRoutes(basePath: BookingBasePath) {
   if (basePath === "/home") {
@@ -12,10 +15,13 @@ export function bookingRoutes(basePath: BookingBasePath) {
   }
 
   return {
-    chat: "/profile/bookings/chat" as const,
-    complaint: "/profile/bookings/complaint" as const,
-    confirmation: "/profile/bookings/confirmation" as const,
-    profileDetails: "/profile/bookings/profile-details-sheet" as const,
-    dismissTo: "/profile/bookings" as const,
+    chat: `${basePath}/chat` as `${Exclude<BookingBasePath, "/home">}/chat`,
+    complaint:
+      `${basePath}/complaint` as `${Exclude<BookingBasePath, "/home">}/complaint`,
+    confirmation:
+      `${basePath}/confirmation` as `${Exclude<BookingBasePath, "/home">}/confirmation`,
+    profileDetails:
+      `${basePath}/profile-details-sheet` as `${Exclude<BookingBasePath, "/home">}/profile-details-sheet`,
+    dismissTo: basePath,
   };
 }

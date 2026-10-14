@@ -15,7 +15,7 @@ import {
   MessageCircle,
   Package,
 } from "lucide-react-native";
-import { router } from "expo-router";
+import { useRouter } from "expo-router";
 import * as Haptics from "expo-haptics";
 import {
   InboxNotification,
@@ -27,6 +27,7 @@ import { colors, rounded, spacing } from "@/src/theme";
 
 export default function NotificationsScreen() {
   const insets = useSafeAreaInsets();
+  const router = useRouter();
   const { data, isLoading, isError, refetch, isFetching } =
     useNotificationInbox();
   const markRead = useMarkNotificationRead();
@@ -47,14 +48,16 @@ export default function NotificationsScreen() {
     if (resolvedType === "OFFER_MESSAGE") {
       router.push({
         pathname: isCreator
-          ? "/profile/offers/chat"
-          : "/profile/bookings/chat",
+          ? "/start/offers/chat"
+          : "/start/bookings/chat",
         params: { offerId },
       });
       return;
     }
     router.push({
-      pathname: isCreator ? "/profile/offers/[id]" : "/profile/bookings/[id]",
+      pathname: isCreator
+        ? "/start/offers/[id]"
+        : "/start/bookings/[id]",
       params: { id: offerId },
     });
   };

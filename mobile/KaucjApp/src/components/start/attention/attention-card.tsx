@@ -6,13 +6,13 @@ import OfferSatusPill from "@/src/components/ui/offer-status-pill";
 import { useConfirmOffer } from "@/src/api/hooks/use-offer";
 import { colors, rounded, spacing } from "@/src/theme";
 import { Offer } from "@/src/types";
+import { openMapsNavigation } from "@/src/lib/open-maps-navigation";
 import {
   formatOfferItemsLabel,
   formatRemainingLabel,
   getAttentionExpiresAt,
   isAttentionUrgent,
 } from "@/src/lib/start-utils";
-import { openMapsNavigation } from "@/src/lib/open-maps-navigation";
 import {
   AttentionPerspective,
   chatPathForPerspective,
@@ -39,6 +39,7 @@ export default function AttentionCard({
   const urgent = isAttentionUrgent(offer);
   const isReserved = offer.status === "RESERVED";
   const isPending = offer.status === "PENDING_CONFIRMATION";
+  const isCollector = perspective === "collector";
 
   const openDetail = () => {
     Haptics.selectionAsync();
@@ -110,12 +111,12 @@ export default function AttentionCard({
         <View style={styles.actions}>
           {isReserved ? (
             <>
-              <ActionBtn label="Czat" outline onPress={openChat} />
-              {perspective === "collector" ? (
-                <ActionBtn label="Nawiguj" onPress={onNavigate} />
+              {isCollector ? (
+                <ActionBtn label="Nawiguj" outline onPress={onNavigate} />
               ) : (
-                <ActionBtn label="Szczegóły" onPress={openDetail} />
+                <ActionBtn label="Szczegóły" outline onPress={openDetail} />
               )}
+              <ActionBtn label="Czat" onPress={openChat} />
             </>
           ) : null}
           {isPending ? (

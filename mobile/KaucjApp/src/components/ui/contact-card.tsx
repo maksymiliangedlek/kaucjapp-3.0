@@ -24,6 +24,8 @@ interface ContactCardProps {
   chatPathname:
     | "/profile/bookings/chat"
     | "/profile/offers/chat"
+    | "/start/bookings/chat"
+    | "/start/offers/chat"
     | "/home/chat";
   header?: string;
   isTheUserCourier?: boolean;
