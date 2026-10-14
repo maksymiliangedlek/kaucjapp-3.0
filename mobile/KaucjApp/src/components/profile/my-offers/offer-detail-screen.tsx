@@ -14,12 +14,17 @@ import { RefreshControl, ScrollView, StyleSheet, View } from "react-native";
 import ExpandableCard from "../../ui/expandable-card";
 import OfferStatusSummaryCard from "./offer-status-summary-card";
 import OfferActions from "./offer-actions";
+import { OfferBasePath } from "./offer-routes";
 
 interface OfferDetailScreenProps {
   offerId: number;
+  basePath?: OfferBasePath;
 }
 
-export default function OfferDetailScreen({ offerId }: OfferDetailScreenProps) {
+export default function OfferDetailScreen({
+  offerId,
+  basePath = "/profile/offers",
+}: OfferDetailScreenProps) {
   const {
     data: offer,
     isLoading,
@@ -66,7 +71,7 @@ export default function OfferDetailScreen({ offerId }: OfferDetailScreenProps) {
         />
       }
     >
-      <OfferStatusSummaryCard offer={offer} />
+      <OfferStatusSummaryCard offer={offer} basePath={basePath} />
 
       <ExpandableCard
         title="Zawartość"
@@ -104,7 +109,7 @@ export default function OfferDetailScreen({ offerId }: OfferDetailScreenProps) {
         </View>
       </ExpandableCard>
 
-      <OfferActions offer={offer} />
+      <OfferActions offer={offer} basePath={basePath} />
     </ScrollView>
   );
 }

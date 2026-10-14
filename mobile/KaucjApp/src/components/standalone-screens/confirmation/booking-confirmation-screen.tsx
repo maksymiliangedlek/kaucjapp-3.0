@@ -5,7 +5,7 @@ import ErrorState from "@/src/components/states/error-state";
 import ConfirmationWithReview from "@/src/components/standalone-screens/confirmation/confirmation-with-review";
 
 interface BookingConfirmationScreenProps {
-  dismissTo: "/profile/bookings" | "/home";
+  dismissTo: "/profile/bookings" | "/home" | "/(app)/(tabs)/start";
 }
 
 export default function BookingConfirmationScreen({

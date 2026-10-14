@@ -15,7 +15,7 @@ import {
   MessageCircle,
   Package,
 } from "lucide-react-native";
-import { usePathname, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import * as Haptics from "expo-haptics";
 import {
   InboxNotification,
@@ -23,13 +23,11 @@ import {
   useNotificationInbox,
 } from "@/src/api/hooks/use-notifications";
 import { timeAgoInPolish } from "@/src/lib";
-import { withReturnTo } from "@/src/lib/nav-with-return";
 import { colors, rounded, spacing } from "@/src/theme";
 
 export default function NotificationsScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const pathname = usePathname();
   const { data, isLoading, isError, refetch, isFetching } =
     useNotificationInbox();
   const markRead = useMarkNotificationRead();
@@ -42,38 +40,26 @@ export default function NotificationsScreen() {
     const { type, offerId, role } = item.data ?? {};
     const resolvedType = type ?? item.type;
     if (resolvedType === "USER_REVIEW") {
-      router.push(
-        withReturnTo({ pathname: "/profile", params: {} }, pathname),
-      );
+      router.push("/profile");
       return;
     }
     if (!offerId) return;
     const isCreator = role === "CREATOR";
     if (resolvedType === "OFFER_MESSAGE") {
-      router.push(
-        withReturnTo(
-          {
-            pathname: isCreator
-              ? "/profile/offers/chat"
-              : "/profile/bookings/chat",
-            params: { offerId },
-          },
-          pathname,
-        ),
-      );
+      router.push({
+        pathname: isCreator
+          ? "/start/offers/chat"
+          : "/start/bookings/chat",
+        params: { offerId },
+      });
       return;
     }
-    router.push(
-      withReturnTo(
-        {
-          pathname: isCreator
-            ? "/profile/offers/[id]"
-            : "/profile/bookings/[id]",
-          params: { id: offerId },
-        },
-        pathname,
-      ),
-    );
+    router.push({
+      pathname: isCreator
+        ? "/start/offers/[id]"
+        : "/start/bookings/[id]",
+      params: { id: offerId },
+    });
   };
 
   if (isLoading) {

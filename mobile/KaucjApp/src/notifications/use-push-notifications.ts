@@ -8,7 +8,13 @@ import { userKeys } from "@/src/api/hooks/use-user";
 import { PushData } from "@/src/types/notification";
 import { registerForPushNotifications } from "./push-registration";
 
-const CHAT_PATHNAMES = ["/profile/offers/chat", "/profile/bookings/chat"];
+function isChatPathname(pathname: string) {
+  return (
+    pathname.includes("/offers/chat") ||
+    pathname.includes("/bookings/chat") ||
+    pathname.endsWith("/home/chat")
+  );
+}
 
 // Offer whose chat is on screen; its message pushes are not shown as banners.
 let openChatOfferId: string | null = null;
@@ -38,15 +44,16 @@ const openNotification = (data: Partial<PushData>) => {
   if (!offerId) return;
 
   const isCreator = role === "CREATOR";
+  // Prefer Start-stack routes so NativeTabs does not pop nested screens.
   if (type === "OFFER_MESSAGE") {
     router.push({
-      pathname: isCreator ? "/profile/offers/chat" : "/profile/bookings/chat",
+      pathname: isCreator ? "/start/offers/chat" : "/start/bookings/chat",
       params: { offerId },
     });
     return;
   }
   router.push({
-    pathname: isCreator ? "/profile/offers/[id]" : "/profile/bookings/[id]",
+    pathname: isCreator ? "/start/offers/[id]" : "/start/bookings/[id]",
     params: { id: offerId },
   });
 };
@@ -63,9 +70,7 @@ export const usePushNotifications = (
   const lastResponse = Notifications.useLastNotificationResponse();
 
   useEffect(() => {
-    openChatOfferId = CHAT_PATHNAMES.includes(pathname)
-      ? (offerId ?? null)
-      : null;
+    openChatOfferId = isChatPathname(pathname) ? (offerId ?? null) : null;
   }, [pathname, offerId]);
 
   useEffect(() => {

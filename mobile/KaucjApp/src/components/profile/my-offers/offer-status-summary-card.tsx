@@ -23,13 +23,19 @@ import ComplaintCard from "./complaint-card";
 import UserReviewCheck from "../../ui/review/has-added-user-review";
 import Animated from "react-native-reanimated";
 import { layoutSpring } from "@/src/constants";
+import { OfferBasePath, offerRoutes } from "./offer-routes";
 
 interface OfferHeadlineProps {
   offer: Offer;
+  basePath?: OfferBasePath;
 }
 
-export default function OfferStatusSummaryCard({ offer }: OfferHeadlineProps) {
+export default function OfferStatusSummaryCard({
+  offer,
+  basePath = "/profile/offers",
+}: OfferHeadlineProps) {
   const router = useRouter();
+  const routes = offerRoutes(basePath);
   const { mutate: confirmOffer, isPending } = useConfirmOffer(offer.offerId);
 
   const isReserved = offer.status === "RESERVED";
@@ -63,7 +69,7 @@ export default function OfferStatusSummaryCard({ offer }: OfferHeadlineProps) {
             onSuccess: () => {
               if (isPendingConfirmation) {
                 router.push({
-                  pathname: "/profile/offers/confirmation",
+                  pathname: routes.confirmation,
                   params: {
                     type: "success",
                     userId: offer.collectorId,
@@ -80,13 +86,13 @@ export default function OfferStatusSummaryCard({ offer }: OfferHeadlineProps) {
 
   const handleComplaint = () => {
     router.push({
-      pathname: "/profile/offers/complaint",
+      pathname: routes.complaint,
       params: { id: offer.offerId },
     });
   };
   const handleOnUserProfileInfoPress = () => {
     router.push({
-      pathname: "/profile/offers/profile-details-sheet",
+      pathname: routes.profileDetails,
       params: { userId: offer.collectorId },
     });
   };
@@ -106,7 +112,7 @@ export default function OfferStatusSummaryCard({ offer }: OfferHeadlineProps) {
               asCard={false}
               userId={offer.collectorId}
               offerId={offer.offerId}
-              chatPathname="/profile/offers/chat"
+              chatPathname={routes.chat}
               header={courierHeaderText}
               isTheUserCourier={true}
               onUserProfileInfoPress={handleOnUserProfileInfoPress}

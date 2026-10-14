@@ -11,9 +11,9 @@ type StackHeaderBackProps = {
 };
 
 /**
- * Circular liquid-glass back (iOS 26 wraps headerLeft). Prefers `returnTo`
- * query param (set by cross-tab pushes from Start) so back returns to the
- * screen we came from instead of Profile’s nested stack root.
+ * Circular liquid-glass back (iOS 26 wraps headerLeft).
+ * Prefer stack `back()` when possible so stacked cover screens
+ * (attention → detail → chat) pop one level. Only then dismiss / fallback.
  */
 export default function StackHeaderBack({
   fallbackHref,
@@ -47,8 +47,13 @@ export default function StackHeaderBack({
           }
           return;
         }
+        // Prefer back over dismiss so nested cover screens don't wipe the stack.
         if (router.canGoBack()) {
           router.back();
+          return;
+        }
+        if (router.canDismiss()) {
+          router.dismiss();
           return;
         }
         if (fallbackHref) {

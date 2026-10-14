@@ -7,13 +7,19 @@ import { XCircle } from "lucide-react-native";
 import React from "react";
 import { Alert, Pressable, StyleSheet, Text } from "react-native";
 import Animated from "react-native-reanimated";
+import { OfferBasePath, offerRoutes } from "./offer-routes";
 
 interface OfferActionsProps {
   offer: Offer;
+  basePath?: OfferBasePath;
 }
 
-export default function OfferActions({ offer }: OfferActionsProps) {
+export default function OfferActions({
+  offer,
+  basePath = "/profile/offers",
+}: OfferActionsProps) {
   const router = useRouter();
+  const routes = offerRoutes(basePath);
   const { mutate: changeOfferStatus, isPending } = useChangeOfferStatus();
 
   const isOpen = offer.status === "OPEN";
@@ -35,7 +41,7 @@ export default function OfferActions({ offer }: OfferActionsProps) {
               {
                 onSuccess: () => {
                   router.push({
-                    pathname: "/profile/offers/confirmation",
+                    pathname: routes.confirmation,
                     params: { type: "cancel" },
                   });
                 },

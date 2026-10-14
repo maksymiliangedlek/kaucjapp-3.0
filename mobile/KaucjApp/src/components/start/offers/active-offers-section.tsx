@@ -1,10 +1,9 @@
 import React from "react";
 import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
-import { usePathname, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import * as Haptics from "expo-haptics";
 import { useChangeOfferStatus, useMyOffers } from "@/src/api/hooks/use-offer";
 import OfferSatusPill from "@/src/components/ui/offer-status-pill";
-import { withReturnTo } from "@/src/lib/nav-with-return";
 import { formatOfferItemsLabel } from "@/src/lib/start-utils";
 import { colors, rounded, spacing } from "@/src/theme";
 import { Offer } from "@/src/types";
@@ -14,7 +13,6 @@ import SectionSkeleton from "../section-skeleton";
 
 export default function ActiveOffersSection() {
   const router = useRouter();
-  const pathname = usePathname();
   const { data, isLoading, isError, refetch } = useMyOffers();
   const openOffers = (data ?? []).filter((o) => o.status === "OPEN");
 
@@ -48,17 +46,7 @@ export default function ActiveOffersSection() {
     <PeekStack
       title="Twoje aktywne oferty"
       count={openOffers.length}
-      onOpenList={() =>
-        router.push(
-          withReturnTo(
-            {
-              pathname: "/(app)/(tabs)/profile/offers",
-              params: {},
-            },
-            pathname,
-          ),
-        )
-      }
+      onOpenList={() => router.push("/(app)/(tabs)/profile/offers")}
       accessibilityLabel={`Twoje aktywne oferty, ${openOffers.length}`}
     >
       {shown.map((offer) => (
@@ -66,7 +54,6 @@ export default function ActiveOffersSection() {
           key={offer.offerId}
           offer={offer}
           preview={stacked}
-          returnTo={pathname}
         />
       ))}
     </PeekStack>
@@ -76,26 +63,19 @@ export default function ActiveOffersSection() {
 function ActiveOfferCard({
   offer,
   preview = false,
-  returnTo,
 }: {
   offer: Offer;
   preview?: boolean;
-  returnTo: string;
 }) {
   const router = useRouter();
   const changeStatus = useChangeOfferStatus();
 
   const openDetail = () => {
     Haptics.selectionAsync();
-    router.push(
-      withReturnTo(
-        {
-          pathname: "/profile/offers/[id]",
-          params: { id: String(offer.offerId) },
-        },
-        returnTo,
-      ),
-    );
+    router.push({
+      pathname: "/start/offers/[id]",
+      params: { id: String(offer.offerId) },
+    });
   };
 
   const onCancel = () => {

@@ -82,18 +82,19 @@ export function useStartAttention() {
   };
 }
 
+/** Start-stack routes — same tab as attention/peek, no NativeTabs cross-tab pop. */
 export function chatPathForPerspective(
   perspective: AttentionPerspective,
   offerId: number,
 ) {
   if (perspective === "creator") {
     return {
-      pathname: "/profile/offers/chat" as const,
+      pathname: "/start/offers/chat" as const,
       params: { offerId: String(offerId) },
     };
   }
   return {
-    pathname: "/profile/bookings/chat" as const,
+    pathname: "/start/bookings/chat" as const,
     params: { offerId: String(offerId) },
   };
 }
@@ -104,12 +105,12 @@ export function detailPathForPerspective(
 ) {
   if (perspective === "creator") {
     return {
-      pathname: "/profile/offers/[id]" as const,
+      pathname: "/start/offers/[id]" as const,
       params: { id: String(offer.offerId) },
     };
   }
   return {
-    pathname: "/profile/bookings/[id]" as const,
+    pathname: "/start/bookings/[id]" as const,
     params: { id: String(offer.offerId) },
   };
 }

@@ -1,12 +1,12 @@
 import React from "react";
 import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
-import { usePathname, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import * as Haptics from "expo-haptics";
 import OfferSatusPill from "@/src/components/ui/offer-status-pill";
 import { useConfirmOffer } from "@/src/api/hooks/use-offer";
 import { colors, rounded, spacing } from "@/src/theme";
 import { Offer } from "@/src/types";
-import { withReturnTo } from "@/src/lib/nav-with-return";
+import { openMapsNavigation } from "@/src/lib/open-maps-navigation";
 import {
   formatOfferItemsLabel,
   formatRemainingLabel,
@@ -34,28 +34,26 @@ export default function AttentionCard({
   preview = false,
 }: AttentionCardProps) {
   const router = useRouter();
-  const pathname = usePathname();
   const confirm = useConfirmOffer(offer.offerId);
   const expiresAt = getAttentionExpiresAt(offer);
   const urgent = isAttentionUrgent(offer);
   const isReserved = offer.status === "RESERVED";
   const isPending = offer.status === "PENDING_CONFIRMATION";
+  const isCollector = perspective === "collector";
 
   const openDetail = () => {
     Haptics.selectionAsync();
-    router.push(
-      withReturnTo(detailPathForPerspective(perspective, offer), pathname),
-    );
+    router.push(detailPathForPerspective(perspective, offer));
   };
 
   const openChat = () => {
     Haptics.selectionAsync();
-    router.push(
-      withReturnTo(
-        chatPathForPerspective(perspective, offer.offerId),
-        pathname,
-      ),
-    );
+    router.push(chatPathForPerspective(perspective, offer.offerId));
+  };
+
+  const onNavigate = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    openMapsNavigation(offer.latitude, offer.longitude, offer.pickupAddress);
   };
 
   const onConfirm = () => {
@@ -113,7 +111,11 @@ export default function AttentionCard({
         <View style={styles.actions}>
           {isReserved ? (
             <>
-              <ActionBtn label="Szczegóły" outline onPress={openDetail} />
+              {isCollector ? (
+                <ActionBtn label="Nawiguj" outline onPress={onNavigate} />
+              ) : (
+                <ActionBtn label="Szczegóły" outline onPress={openDetail} />
+              )}
               <ActionBtn label="Czat" onPress={openChat} />
             </>
           ) : null}

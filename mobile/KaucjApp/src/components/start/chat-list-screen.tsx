@@ -8,11 +8,11 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { MessageCircle } from "lucide-react-native";
-import { usePathname, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import * as Haptics from "expo-haptics";
 import { useAuth } from "@/src/auth/use-auth";
 import { useMyOffers, useMyReservedOffers } from "@/src/api/hooks/use-offer";
-import { withReturnTo } from "@/src/lib/nav-with-return";
+import { chatPathForPerspective } from "@/src/hooks/use-start-attention";
 import { formatOfferItemsLabel, isAttentionOffer } from "@/src/lib/start-utils";
 import { colors, rounded, spacing } from "@/src/theme";
 import { Offer } from "@/src/types";
@@ -26,7 +26,6 @@ type ChatRow = {
 export default function ChatListScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const pathname = usePathname();
   const { user } = useAuth();
   const myOffers = useMyOffers();
   const reserved = useMyReservedOffers();
@@ -104,15 +103,9 @@ export default function ChatListScreen() {
           style={styles.row}
           onPress={() => {
             router.push(
-              withReturnTo(
-                {
-                  pathname:
-                    item.perspective === "creator"
-                      ? "/profile/offers/chat"
-                      : "/profile/bookings/chat",
-                  params: { offerId: String(item.offer.offerId) },
-                },
-                pathname,
+              chatPathForPerspective(
+                item.perspective,
+                item.offer.offerId,
               ),
             );
           }}
