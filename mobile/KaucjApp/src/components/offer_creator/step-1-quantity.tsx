@@ -16,18 +16,19 @@ import Animated, {
 } from "react-native-reanimated";
 import Slider from "@react-native-community/slider";
 import { AnimatedRollingNumber } from "react-native-animated-rolling-numbers";
+import { BottleWine } from "lucide-react-native";
 import { colors, rounded, shadows, spacing } from "@/src/theme";
 import { OfferFormValues, PRICE_MAX } from "@/src/validation";
 import { computeOfferTotals } from "@/src/hooks/use-offer-creator";
-import NavigationButtons from "./navigation-buttons";
 import { layoutSpring } from "@/src/constants";
+import CanIcon from "./can-icon";
 
 type ItemKey = "plastic" | "cans";
 
 interface RowConfig {
   id: ItemKey;
   title: string;
-  icon: string;
+  Icon: React.ComponentType<{ size?: number; color?: string }>;
   quantityField: "plasticBottles" | "cans";
   priceField: "plasticPrice" | "cansPrice";
 }
@@ -36,14 +37,14 @@ const ROWS: readonly RowConfig[] = [
   {
     id: "plastic",
     title: "Butelki plastikowe",
-    icon: "🥤",
+    Icon: BottleWine,
     quantityField: "plasticBottles",
     priceField: "plasticPrice",
   },
   {
     id: "cans",
     title: "Puszki",
-    icon: "🥫",
+    Icon: CanIcon,
     quantityField: "cans",
     priceField: "cansPrice",
   },
@@ -100,7 +101,9 @@ function ItemRow({ row, isExpanded, onToggle }: ItemRowProps) {
     >
       <Pressable style={styles.rowHeader} onPress={onToggle}>
         <View style={styles.rowHeaderLeft}>
-          <Text style={styles.rowIcon}>{row.icon}</Text>
+          <View style={styles.rowIconWrap}>
+            <row.Icon size={22} color={colors.primary.dark} />
+          </View>
           <View>
             <Text style={styles.rowTitle}>{row.title}</Text>
             {quantity > 0 && !isExpanded && (
@@ -267,8 +270,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 12,
   },
-  rowIcon: {
-    fontSize: 24,
+  rowIconWrap: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: colors.primary.light,
+    alignItems: "center",
+    justifyContent: "center",
   },
   rowTitle: {
     fontSize: 16,

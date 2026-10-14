@@ -13,7 +13,8 @@ export function AuthHeader({
   subtitle,
   imageShown = true,
 }: AuthHeaderProps) {
-  const imageSource = require("../../../assets/images/kaucjapp-logo.png");
+  // Same asset as the home-screen / App Store icon.
+  const imageSource = require("../../../assets/icons/icon.png");
 
   return (
     <View style={styles.container}>
