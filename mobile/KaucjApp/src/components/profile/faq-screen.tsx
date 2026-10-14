@@ -1,7 +1,8 @@
 import React from "react";
-import { View, Text, StyleSheet, ScrollView } from "react-native";
-import { Info } from "lucide-react-native";
+import { View, Text, StyleSheet, ScrollView, Pressable } from "react-native";
+import { Info, ChevronRight } from "lucide-react-native";
 import { Image } from "expo-image";
+import { router } from "expo-router";
 
 import { colors, rounded, shadows, spacing } from "@/src/theme";
 import ExpandableCard from "../ui/expandable-card";
@@ -10,9 +11,21 @@ import {
   layoutSpring,
   type FaqItem as FaqItemType,
 } from "@/src/constants";
+import {
+  productOnboardingCopy,
+  ROLE_ORDER,
+} from "@/src/constants/product-onboarding/copy";
+import { AppRole } from "@/src/types/user";
 import Animated, { FadeInUp } from "react-native-reanimated";
 
 export default function FaqScreen() {
+  const openGuide = (role: AppRole) => {
+    router.push({
+      pathname: "/product-onboarding",
+      params: { mode: "replay", role },
+    });
+  };
+
   return (
     <ScrollView
       showsVerticalScrollIndicator={false}
@@ -20,6 +33,42 @@ export default function FaqScreen() {
       style={styles.scrollView}
       contentContainerStyle={styles.contentContainer}
     >
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>
+          {productOnboardingCopy.faq.sectionTitle}
+        </Text>
+        <Text style={styles.guideSubtitle}>
+          {productOnboardingCopy.faq.sectionSubtitle}
+        </Text>
+        <View style={styles.sectionContent}>
+          {ROLE_ORDER.map((role, index) => {
+            const item = productOnboardingCopy.faq.options[role];
+            return (
+              <React.Fragment key={role}>
+                <Pressable
+                  onPress={() => openGuide(role)}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${item.title}. ${item.subtitle}`}
+                  style={({ pressed }) => [
+                    styles.guideRow,
+                    pressed && styles.guideRowPressed,
+                  ]}
+                >
+                  <View style={styles.guideTextCol}>
+                    <Text style={styles.guideTitle}>{item.title}</Text>
+                    <Text style={styles.guideRowSubtitle}>{item.subtitle}</Text>
+                  </View>
+                  <ChevronRight size={20} color={colors.text.muted} />
+                </Pressable>
+                {index !== ROLE_ORDER.length - 1 && (
+                  <View style={styles.divider} />
+                )}
+              </React.Fragment>
+            );
+          })}
+        </View>
+      </View>
+
       {FAQ_DATA.map((section, sectionIndex) => (
         <View key={section.category} style={styles.section}>
           <Animated.View layout={layoutSpring}>
@@ -129,6 +178,37 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
     paddingHorizontal: spacing.xs,
     letterSpacing: -0.3,
+  },
+  guideSubtitle: {
+    fontSize: 14,
+    color: colors.text.secondary,
+    marginBottom: spacing.sm,
+    paddingHorizontal: spacing.xs,
+  },
+  guideRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+    minHeight: 64,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+  },
+  guideRowPressed: {
+    backgroundColor: colors.primary.light,
+  },
+  guideTextCol: {
+    flex: 1,
+    gap: 2,
+  },
+  guideTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: colors.text.primary,
+  },
+  guideRowSubtitle: {
+    fontSize: 13,
+    color: colors.text.secondary,
+    lineHeight: 18,
   },
   sectionContent: {
     borderRadius: rounded.xl,

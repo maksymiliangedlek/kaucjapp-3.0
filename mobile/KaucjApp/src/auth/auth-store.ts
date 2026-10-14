@@ -1,6 +1,7 @@
 import { create } from "zustand";
-import { authStorage, tokenStorage } from "./secure-storage";
-import { User } from "@/src/types/user";
+import { appStorage, authStorage, tokenStorage } from "./secure-storage";
+import { AppRole, User } from "@/src/types/user";
+import { mapUserFromApi } from "@/src/lib/map-user";
 import { AxiosInstance } from "axios";
 
 interface AuthState {
@@ -73,24 +74,16 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           .get("/user/me", {
             headers: { Authorization: `Bearer ${token}` },
           })
-          .then(({ data: userData }) => {
-            const freshUser: User = {
-              userId: userData.userId,
-              username: userData.username,
-              firstName: userData.firstName,
-              lastName: userData.lastName,
-              phone: userData.phone ?? null,
-              sharePhoneOnReservation: userData.sharePhoneOnReservation ?? true,
-              profilePictureUrl: userData.profilePictureUrl ?? null,
-              addresses: userData.addresses,
-              createdAt: userData.createdAt,
-              collectedBottleCount: userData.collectedBottleCount,
-              collectedCanCount: userData.collectedCanCount,
-              returnedBottleCount: userData.returnedBottleCount,
-              returnedCanCount: userData.returnedCanCount,
-              returnedTotalCount: userData.returnedTotalCount,
-              collectedTotalCount: userData.collectedTotalCount,
-            };
+          .then(async ({ data: userData }) => {
+            const freshUser = mapUserFromApi(userData);
+            const pending = await appStorage.getPendingProductOnboardingSync();
+            // Keep local "completed" while an offline finish is still syncing.
+            if (pending && !freshUser.productOnboardingCompleted) {
+              freshUser.productOnboardingCompleted = true;
+              if (pending.appRole) {
+                freshUser.appRole = pending.appRole as AppRole;
+              }
+            }
             set({ user: freshUser });
             authStorage.setUserData(freshUser);
           })

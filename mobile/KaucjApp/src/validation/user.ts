@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+export const AppRoleSchema = z.enum(["OFFERER", "COLLECTOR", "BOTH"]);
+
 export const UpdateUserSchema = z.object({
   firstName: z
     .string()
@@ -15,7 +17,11 @@ export const UpdateUserSchema = z.object({
     .nullable()
     .optional(),
 
-  sharePhoneOnReservation: z.boolean(),
+  sharePhoneOnReservation: z.boolean().optional(),
+
+  appRole: AppRoleSchema.nullable().optional(),
+
+  productOnboardingCompleted: z.literal(true).optional(),
 });
 
 export type UpdateUserFormValues = z.infer<typeof UpdateUserSchema>;

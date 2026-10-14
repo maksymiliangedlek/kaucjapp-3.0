@@ -5,6 +5,8 @@ const ACCESS_TOKEN_KEY = "kaucjapp_access_token";
 const REFRESH_TOKEN_KEY = "kaucjapp_refresh_token";
 const ONBOARDING_KEY = "kaucjapp_has_seen_onboarding";
 const USER_DATA_KEY = "kaucjapp_user_data";
+const PENDING_PRODUCT_ONBOARDING_SYNC_KEY =
+  "kaucjapp_pending_product_onboarding_sync";
 
 export const tokenStorage = {
   setTokens: async (accessToken: string, refreshToken: string) => {
@@ -44,5 +46,30 @@ export const appStorage = {
   //only for testing not used in the app
   clearOnboarding: async () => {
     await SecureStore.deleteItemAsync(ONBOARDING_KEY);
+  },
+
+  setPendingProductOnboardingSync: async (payload: {
+    appRole?: string | null;
+  }) => {
+    await SecureStore.setItemAsync(
+      PENDING_PRODUCT_ONBOARDING_SYNC_KEY,
+      JSON.stringify(payload),
+    );
+  },
+  getPendingProductOnboardingSync: async (): Promise<{
+    appRole?: string | null;
+  } | null> => {
+    const raw = await SecureStore.getItemAsync(
+      PENDING_PRODUCT_ONBOARDING_SYNC_KEY,
+    );
+    if (!raw) return null;
+    try {
+      return JSON.parse(raw);
+    } catch {
+      return null;
+    }
+  },
+  clearPendingProductOnboardingSync: async () => {
+    await SecureStore.deleteItemAsync(PENDING_PRODUCT_ONBOARDING_SYNC_KEY);
   },
 };

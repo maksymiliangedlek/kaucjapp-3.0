@@ -62,6 +62,12 @@ export const useUpdateUser = () => {
       if (payload.sharePhoneOnReservation !== undefined) {
         updates.sharePhoneOnReservation = payload.sharePhoneOnReservation;
       }
+      if (payload.appRole !== undefined) {
+        updates.appRole = payload.appRole;
+      }
+      if (payload.productOnboardingCompleted === true) {
+        updates.productOnboardingCompleted = true;
+      }
 
       useAuthStore.getState().patchUser(updates);
     },

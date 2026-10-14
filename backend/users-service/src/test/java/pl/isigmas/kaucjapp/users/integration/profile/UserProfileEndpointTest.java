@@ -257,6 +257,114 @@ public class UserProfileEndpointTest extends BaseIntegrationTest {
     }
 
     @Test
+    void createUser_startsWithProductOnboardingIncomplete() throws Exception {
+        postCreateUser("""
+                {
+                    "user_id": 1013,
+                    "username": "newguide",
+                    "first_name": "New",
+                    "last_name": "Guide",
+                    "phone": "555666780",
+                    "email": "newguide@example.com"
+                }
+                """);
+
+        mockMvc.perform(get("/api/user/me").header("X-User-Id", 1013L))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.product_onboarding_completed").value(false))
+                .andExpect(jsonPath("$.app_role").value(org.hamcrest.Matchers.nullValue()));
+    }
+
+    @Test
+    void patchMe_setsAppRoleAndCompletesProductOnboarding() throws Exception {
+        postCreateUser("""
+                {
+                    "user_id": 1014,
+                    "username": "completer",
+                    "first_name": "Com",
+                    "last_name": "Pleter",
+                    "phone": "555666781",
+                    "email": "completer@example.com"
+                }
+                """);
+
+        mockMvc.perform(patch("/api/user/me")
+                        .header("X-User-Id", 1014L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                    "app_role": "OFFERER",
+                                    "product_onboarding_completed": true
+                                }
+                                """))
+                .andExpect(status().isNoContent());
+
+        mockMvc.perform(get("/api/user/me").header("X-User-Id", 1014L))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.app_role").value("OFFERER"))
+                .andExpect(jsonPath("$.product_onboarding_completed").value(true));
+
+        User user = userRepository.findById(1014L).orElseThrow();
+        assertThat(user.getProductOnboardingCompletedAt()).isNotNull();
+    }
+
+    @Test
+    void patchMe_ignoresProductOnboardingCompletedFalse() throws Exception {
+        postCreateUser("""
+                {
+                    "user_id": 1015,
+                    "username": "keepon",
+                    "first_name": "Keep",
+                    "last_name": "On",
+                    "phone": "555666782",
+                    "email": "keepon@example.com"
+                }
+                """);
+
+        mockMvc.perform(patch("/api/user/me")
+                        .header("X-User-Id", 1015L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                    "app_role": "COLLECTOR",
+                                    "product_onboarding_completed": true
+                                }
+                                """))
+                .andExpect(status().isNoContent());
+
+        mockMvc.perform(patch("/api/user/me")
+                        .header("X-User-Id", 1015L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"product_onboarding_completed\": false}"))
+                .andExpect(status().isNoContent());
+
+        mockMvc.perform(get("/api/user/me").header("X-User-Id", 1015L))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.app_role").value("COLLECTOR"))
+                .andExpect(jsonPath("$.product_onboarding_completed").value(true));
+    }
+
+    @Test
+    void patchMe_rejectsInvalidAppRole() throws Exception {
+        postCreateUser("""
+                {
+                    "user_id": 1016,
+                    "username": "badrole",
+                    "first_name": "Bad",
+                    "last_name": "Role",
+                    "phone": "555666783",
+                    "email": "badrole@example.com"
+                }
+                """);
+
+        mockMvc.perform(patch("/api/user/me")
+                        .header("X-User-Id", 1016L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"app_role\": \"ADMIN\"}"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
     void patchMe_updatesSharePhoneOnReservation() throws Exception {
         postCreateUser("""
                 {
