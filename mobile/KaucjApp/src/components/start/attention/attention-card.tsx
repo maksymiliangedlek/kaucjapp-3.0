@@ -13,7 +13,6 @@ import {
   getAttentionExpiresAt,
   isAttentionUrgent,
 } from "@/src/lib/start-utils";
-import { openMapsNavigation } from "@/src/lib/open-maps-navigation";
 import {
   AttentionPerspective,
   chatPathForPerspective,
@@ -57,11 +56,6 @@ export default function AttentionCard({
         pathname,
       ),
     );
-  };
-
-  const onNavigate = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    openMapsNavigation(offer.latitude, offer.longitude, offer.pickupAddress);
   };
 
   const onConfirm = () => {
@@ -119,12 +113,8 @@ export default function AttentionCard({
         <View style={styles.actions}>
           {isReserved ? (
             <>
-              <ActionBtn label="Czat" outline onPress={openChat} />
-              {perspective === "collector" ? (
-                <ActionBtn label="Nawiguj" onPress={onNavigate} />
-              ) : (
-                <ActionBtn label="Szczegóły" onPress={openDetail} />
-              )}
+              <ActionBtn label="Szczegóły" outline onPress={openDetail} />
+              <ActionBtn label="Czat" onPress={openChat} />
             </>
           ) : null}
           {isPending ? (

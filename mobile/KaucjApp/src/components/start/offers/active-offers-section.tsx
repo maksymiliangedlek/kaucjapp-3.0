@@ -143,9 +143,11 @@ function ActiveOfferCard({
               openDetail();
             }}
             accessibilityRole="button"
-            accessibilityLabel="Edytuj"
+            accessibilityLabel="Szczegóły"
           >
-            <Text style={[styles.btnText, styles.btnTextOutline]}>Edytuj</Text>
+            <Text style={[styles.btnText, styles.btnTextOutline]}>
+              Szczegóły
+            </Text>
           </Pressable>
           <Pressable
             style={[styles.btn, styles.btnDanger]}
