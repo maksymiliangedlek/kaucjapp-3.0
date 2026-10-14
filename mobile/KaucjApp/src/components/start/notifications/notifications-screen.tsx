@@ -15,7 +15,7 @@ import {
   MessageCircle,
   Package,
 } from "lucide-react-native";
-import { router } from "expo-router";
+import { usePathname, useRouter } from "expo-router";
 import * as Haptics from "expo-haptics";
 import {
   InboxNotification,
@@ -23,10 +23,13 @@ import {
   useNotificationInbox,
 } from "@/src/api/hooks/use-notifications";
 import { timeAgoInPolish } from "@/src/lib";
+import { withReturnTo } from "@/src/lib/nav-with-return";
 import { colors, rounded, spacing } from "@/src/theme";
 
 export default function NotificationsScreen() {
   const insets = useSafeAreaInsets();
+  const router = useRouter();
+  const pathname = usePathname();
   const { data, isLoading, isError, refetch, isFetching } =
     useNotificationInbox();
   const markRead = useMarkNotificationRead();
@@ -39,24 +42,38 @@ export default function NotificationsScreen() {
     const { type, offerId, role } = item.data ?? {};
     const resolvedType = type ?? item.type;
     if (resolvedType === "USER_REVIEW") {
-      router.push("/profile");
+      router.push(
+        withReturnTo({ pathname: "/profile", params: {} }, pathname),
+      );
       return;
     }
     if (!offerId) return;
     const isCreator = role === "CREATOR";
     if (resolvedType === "OFFER_MESSAGE") {
-      router.push({
-        pathname: isCreator
-          ? "/profile/offers/chat"
-          : "/profile/bookings/chat",
-        params: { offerId },
-      });
+      router.push(
+        withReturnTo(
+          {
+            pathname: isCreator
+              ? "/profile/offers/chat"
+              : "/profile/bookings/chat",
+            params: { offerId },
+          },
+          pathname,
+        ),
+      );
       return;
     }
-    router.push({
-      pathname: isCreator ? "/profile/offers/[id]" : "/profile/bookings/[id]",
-      params: { id: offerId },
-    });
+    router.push(
+      withReturnTo(
+        {
+          pathname: isCreator
+            ? "/profile/offers/[id]"
+            : "/profile/bookings/[id]",
+          params: { id: offerId },
+        },
+        pathname,
+      ),
+    );
   };
 
   if (isLoading) {

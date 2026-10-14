@@ -1,11 +1,12 @@
 import React from "react";
 import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
-import { useRouter } from "expo-router";
+import { usePathname, useRouter } from "expo-router";
 import * as Haptics from "expo-haptics";
 import OfferSatusPill from "@/src/components/ui/offer-status-pill";
 import { useConfirmOffer } from "@/src/api/hooks/use-offer";
 import { colors, rounded, spacing } from "@/src/theme";
 import { Offer } from "@/src/types";
+import { withReturnTo } from "@/src/lib/nav-with-return";
 import {
   formatOfferItemsLabel,
   formatRemainingLabel,
@@ -34,6 +35,7 @@ export default function AttentionCard({
   preview = false,
 }: AttentionCardProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const confirm = useConfirmOffer(offer.offerId);
   const expiresAt = getAttentionExpiresAt(offer);
   const urgent = isAttentionUrgent(offer);
@@ -42,12 +44,19 @@ export default function AttentionCard({
 
   const openDetail = () => {
     Haptics.selectionAsync();
-    router.push(detailPathForPerspective(perspective, offer));
+    router.push(
+      withReturnTo(detailPathForPerspective(perspective, offer), pathname),
+    );
   };
 
   const openChat = () => {
     Haptics.selectionAsync();
-    router.push(chatPathForPerspective(perspective, offer.offerId));
+    router.push(
+      withReturnTo(
+        chatPathForPerspective(perspective, offer.offerId),
+        pathname,
+      ),
+    );
   };
 
   const onNavigate = () => {
