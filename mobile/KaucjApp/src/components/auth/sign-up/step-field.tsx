@@ -13,8 +13,11 @@ import Animated, {
   useAnimatedStyle,
   useReducedMotion,
   useSharedValue,
+  withSpring,
   withTiming,
 } from "react-native-reanimated";
+
+const FLOAT_SPRING = { damping: 20, stiffness: 320, mass: 0.65 };
 import { colors, spacing } from "@/src/theme";
 import type { SignUpValues } from "@/src/validation";
 
@@ -101,7 +104,7 @@ const StepFieldInput = forwardRef<TextInput, InputProps>(function StepFieldInput
 
   useEffect(() => {
     if (value) {
-      floated.value = reduceMotion ? 1 : withTiming(1, { duration: 160 });
+      floated.value = reduceMotion ? 1 : withSpring(1, FLOAT_SPRING);
     }
   }, [floated, reduceMotion, value]);
 
@@ -161,13 +164,15 @@ const StepFieldInput = forwardRef<TextInput, InputProps>(function StepFieldInput
             onChangeText={onChangeText}
             onFocus={(event) => {
               focus.value = reduceMotion ? 1 : withTiming(1, { duration: 160 });
-              floated.value = reduceMotion ? 1 : withTiming(1, { duration: 160 });
+              floated.value = reduceMotion ? 1 : withSpring(1, FLOAT_SPRING);
               onFocus?.(event);
             }}
             onBlur={(event) => {
               focus.value = reduceMotion ? 0 : withTiming(0, { duration: 160 });
               if (!value) {
-                floated.value = reduceMotion ? 0 : withTiming(0, { duration: 160 });
+                floated.value = reduceMotion
+                  ? 0
+                  : withSpring(0, FLOAT_SPRING);
               }
               onBlur?.(event);
             }}
