@@ -13,6 +13,7 @@ import LoadingState from "@/src/components/states/loading-state";
 import { colors, rounded, spacing } from "@/src/theme";
 import { OfferMessage, OfferStatus } from "@/src/types";
 import { Ionicons } from "@expo/vector-icons";
+import { useHeaderHeight } from "@react-navigation/elements";
 import { useIsFocused, useNavigation } from "@react-navigation/native";
 import { Reply, Send, X } from "lucide-react-native";
 import React, {
@@ -57,8 +58,6 @@ const TAB_BAR_CONTENT_HEIGHT =
       ? 72
       : 49
     : 80;
-// iOS adjusts the scroll inset for the transparent header itself; Android does not.
-const ANDROID_HEADER_HEIGHT = 56;
 const STICK_TO_BOTTOM_SLACK = 80;
 const REPLY_THRESHOLD = 56;
 const REPLY_SPRING = { damping: 30, stiffness: 420, overshootClamping: true };
@@ -71,6 +70,7 @@ export default function OfferChatScreen({ offerId }: OfferChatScreenProps) {
   const navigation = useNavigation();
   const isFocused = useIsFocused();
   const insets = useSafeAreaInsets();
+  const headerHeight = useHeaderHeight();
   const listRef = useRef<FlatList<OfferMessage>>(null);
   const stickToBottom = useRef(true);
   const { user } = useAuth();
@@ -230,11 +230,13 @@ export default function OfferChatScreen({ offerId }: OfferChatScreenProps) {
             keyExtractor={(item) =>
               item.clientMessageId ?? String(item.messageId)
             }
-            contentInsetAdjustmentBehavior="automatic"
+            contentInsetAdjustmentBehavior="never"
             contentContainerStyle={[
               styles.listContent,
-              Platform.OS === "android" && {
-                paddingTop: insets.top + ANDROID_HEADER_HEIGHT + spacing.sm,
+              {
+                // Transparent header overlays the list — first bubbles start below the blur;
+                // scrolling can later go under it as usual.
+                paddingTop: headerHeight + spacing.sm,
               },
             ]}
             keyboardShouldPersistTaps="handled"
@@ -532,7 +534,7 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingHorizontal: 12,
-    paddingVertical: spacing.sm,
+    paddingBottom: spacing.sm,
     gap: 6,
   },
   bubbleRow: {
