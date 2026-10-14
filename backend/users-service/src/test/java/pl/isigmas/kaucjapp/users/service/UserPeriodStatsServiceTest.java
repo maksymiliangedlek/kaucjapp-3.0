@@ -6,7 +6,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import pl.isigmas.kaucjapp.common.logger.Logger;
+import pl.isigmas.kaucjapp.users.DTO.DailyStatRow;
 import pl.isigmas.kaucjapp.users.DTO.DailyStatsCounts;
+import pl.isigmas.kaucjapp.users.DTO.UserDailyStatsSeriesDTO;
 import pl.isigmas.kaucjapp.users.DTO.UserPeriodStatsDTO;
 import pl.isigmas.kaucjapp.users.exception.InvalidStatsPeriodException;
 import pl.isigmas.kaucjapp.users.exception.UserNotFoundException;
@@ -16,6 +18,7 @@ import pl.isigmas.kaucjapp.users.repository.UserRepository;
 
 import java.time.LocalDate;
 import java.time.ZoneOffset;
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -62,6 +65,29 @@ class UserPeriodStatsServiceTest {
         assertThat(result.getCollectedPlasticCount()).isEqualTo(6);
         assertThat(result.getCollectedCanCount()).isEqualTo(2);
         assertThat(result.getCollectedTotalCount()).isEqualTo(8);
+    }
+
+    @Test
+    void getDailySeriesForLastDays_fillsMissingDaysWithZero() {
+        Long userId = 5L;
+        int days = 3;
+        LocalDate end = LocalDate.now(ZoneOffset.UTC);
+        LocalDate start = end.minusDays(days - 1L);
+        LocalDate middle = start.plusDays(1);
+
+        when(userRepository.existsById(userId)).thenReturn(true);
+        when(userDailyStatsRepository.findDailySeries(eq(userId), eq(start), eq(end)))
+                .thenReturn(List.of(dailyRow(middle, 5L)));
+
+        UserDailyStatsSeriesDTO result = userPeriodStatsService.getDailySeriesForLastDays(userId, days);
+
+        assertThat(result.getDays()).hasSize(3);
+        assertThat(result.getDays().get(0).getDate()).isEqualTo(start);
+        assertThat(result.getDays().get(0).getReturnedTotalCount()).isZero();
+        assertThat(result.getDays().get(1).getDate()).isEqualTo(middle);
+        assertThat(result.getDays().get(1).getReturnedTotalCount()).isEqualTo(5);
+        assertThat(result.getDays().get(2).getDate()).isEqualTo(end);
+        assertThat(result.getDays().get(2).getReturnedTotalCount()).isZero();
     }
 
     @Test
@@ -128,6 +154,20 @@ class UserPeriodStatsServiceTest {
             @Override
             public Long getCollectedCan() {
                 return cc;
+            }
+        };
+    }
+
+    private static DailyStatRow dailyRow(LocalDate date, long total) {
+        return new DailyStatRow() {
+            @Override
+            public LocalDate getStatDate() {
+                return date;
+            }
+
+            @Override
+            public Long getReturnedTotal() {
+                return total;
             }
         };
     }

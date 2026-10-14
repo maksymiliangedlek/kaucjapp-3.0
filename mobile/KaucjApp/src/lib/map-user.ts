@@ -27,9 +27,6 @@ export function mapUserFromApi(userData: Record<string, unknown>): User {
 }
 
 /** Initial route after product onboarding (or when already completed). */
-export function getDefaultRouteForAppRole(appRole: AppRole | null | undefined) {
-  if (appRole === "OFFERER") {
-    return "/(app)/(tabs)/profile/offers" as const;
-  }
-  return "/(app)/(tabs)/home" as const;
+export function getDefaultRouteForAppRole(_appRole?: AppRole | null) {
+  return "/(app)/(tabs)/start" as const;
 }

@@ -1,10 +1,8 @@
-import { colors } from "@/src/theme";
-import { HeaderBackButton } from "@react-navigation/elements";
-import { Stack, useRouter } from "expo-router";
+import { Stack } from "expo-router";
+import { coverTabsScreenOptions } from "@/src/components/navigation/cover-tabs";
+import StackHeaderBack from "@/src/components/navigation/stack-header-back";
 
 export default function OffersLayout() {
-  const router = useRouter();
-
   return (
     <Stack>
       <Stack.Screen
@@ -14,42 +12,30 @@ export default function OffersLayout() {
           headerTitle: "Moje oferty",
           headerLargeTitleEnabled: true,
           headerBackButtonDisplayMode: "minimal",
-          headerLeft: () => (
-            <HeaderBackButton
-              tintColor={colors.text.primary}
-              labelStyle={{
-                fontSize: 16,
-                fontWeight: "600",
-                color: colors.text.primary,
-              }}
-              onPress={() => {
-                if (router.canGoBack()) {
-                  router.back();
-                } else {
-                  router.replace("/profile");
-                }
-              }}
-            />
-          ),
+          headerLeft: () => <StackHeaderBack fallbackHref="/profile" />,
         }}
       />
       <Stack.Screen
         name="[id]"
         options={{
+          ...coverTabsScreenOptions,
           headerTitle: "Szczegóły oferty",
           headerLargeTitleEnabled: false,
           headerBackButtonDisplayMode: "minimal",
+          headerLeft: () => <StackHeaderBack />,
         }}
       />
 
       <Stack.Screen
         name="chat"
         options={{
+          ...coverTabsScreenOptions,
           headerTitle: "Czat",
           headerLargeTitleEnabled: false,
           headerBackButtonDisplayMode: "minimal",
           headerTransparent: true,
           headerShadowVisible: false,
+          headerLeft: () => <StackHeaderBack />,
         }}
       />
 
@@ -64,6 +50,7 @@ export default function OffersLayout() {
           sheetGrabberVisible: true,
           sheetAllowedDetents: [1],
           contentStyle: { backgroundColor: "transparent" },
+          headerLeft: () => <StackHeaderBack />,
         }}
       />
 

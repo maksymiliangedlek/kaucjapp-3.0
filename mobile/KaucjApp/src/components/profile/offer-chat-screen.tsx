@@ -13,6 +13,7 @@ import LoadingState from "@/src/components/states/loading-state";
 import { colors, rounded, spacing } from "@/src/theme";
 import { OfferMessage, OfferStatus } from "@/src/types";
 import { Ionicons } from "@expo/vector-icons";
+import { useHeaderHeight } from "@react-navigation/elements";
 import { useIsFocused, useNavigation } from "@react-navigation/native";
 import { Reply, Send, X } from "lucide-react-native";
 import React, {
@@ -49,16 +50,6 @@ const WRITABLE_STATUSES: OfferStatus[] = [
   "PENDING_CONFIRMATION",
   "COMPLAINT",
 ];
-// Native tab bar height above the home indicator. iOS 26+ renders a taller,
-// floating bar than earlier iOS versions.
-const TAB_BAR_CONTENT_HEIGHT =
-  Platform.OS === "ios"
-    ? parseInt(String(Platform.Version), 10) >= 26
-      ? 72
-      : 49
-    : 80;
-// iOS adjusts the scroll inset for the transparent header itself; Android does not.
-const ANDROID_HEADER_HEIGHT = 56;
 const STICK_TO_BOTTOM_SLACK = 80;
 const REPLY_THRESHOLD = 56;
 const REPLY_SPRING = { damping: 30, stiffness: 420, overshootClamping: true };
@@ -71,6 +62,7 @@ export default function OfferChatScreen({ offerId }: OfferChatScreenProps) {
   const navigation = useNavigation();
   const isFocused = useIsFocused();
   const insets = useSafeAreaInsets();
+  const headerHeight = useHeaderHeight();
   const listRef = useRef<FlatList<OfferMessage>>(null);
   const stickToBottom = useRef(true);
   const { user } = useAuth();
@@ -130,9 +122,8 @@ export default function OfferChatScreen({ offerId }: OfferChatScreenProps) {
     }
   };
 
-  const bottomPad = keyboardVisible
-    ? spacing.sm
-    : insets.bottom + TAB_BAR_CONTENT_HEIGHT;
+  // Chat covers the tab bar (fullScreenModal); only home-indicator inset.
+  const bottomPad = keyboardVisible ? spacing.sm : insets.bottom + spacing.sm;
 
   if (!Number.isFinite(offerId) || offerId <= 0) {
     return (
@@ -230,11 +221,13 @@ export default function OfferChatScreen({ offerId }: OfferChatScreenProps) {
             keyExtractor={(item) =>
               item.clientMessageId ?? String(item.messageId)
             }
-            contentInsetAdjustmentBehavior="automatic"
+            contentInsetAdjustmentBehavior="never"
             contentContainerStyle={[
               styles.listContent,
-              Platform.OS === "android" && {
-                paddingTop: insets.top + ANDROID_HEADER_HEIGHT + spacing.sm,
+              {
+                // Transparent header overlays the list — first bubbles start below the blur;
+                // scrolling can later go under it as usual.
+                paddingTop: headerHeight + spacing.sm,
               },
             ]}
             keyboardShouldPersistTaps="handled"
@@ -300,6 +293,7 @@ export default function OfferChatScreen({ offerId }: OfferChatScreenProps) {
               placeholder="Napisz wiadomość"
               placeholderTextColor={colors.text.muted}
               multiline
+              textAlignVertical="center"
               maxLength={1000}
               editable={!sendMessage.isPending}
             />
@@ -532,7 +526,7 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingHorizontal: 12,
-    paddingVertical: spacing.sm,
+    paddingBottom: spacing.sm,
     gap: 6,
   },
   bubbleRow: {
@@ -675,9 +669,16 @@ const styles = StyleSheet.create({
     borderRadius: rounded.lg,
     backgroundColor: colors.background.main,
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
+    // iOS multiline TextInput sits high with equal padding — bias top a bit.
+    paddingTop: Platform.OS === "ios" ? 11 : 10,
+    paddingBottom: Platform.OS === "ios" ? 7 : 10,
     fontSize: 15,
+    lineHeight: 20,
     color: colors.text.primary,
+    ...Platform.select({
+      android: { includeFontPadding: false },
+      default: {},
+    }),
   },
   sendButton: {
     width: 42,

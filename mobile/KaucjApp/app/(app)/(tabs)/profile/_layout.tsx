@@ -1,6 +1,8 @@
 import { Stack } from "expo-router";
+import { coverTabsScreenOptions } from "@/src/components/navigation/cover-tabs";
+import StackHeaderBack from "@/src/components/navigation/stack-header-back";
 
-export default function HomeLayout() {
+export default function ProfileLayout() {
   return (
     <Stack>
       <Stack.Screen
@@ -10,27 +12,31 @@ export default function HomeLayout() {
       <Stack.Screen
         name="settings"
         options={{
+          ...coverTabsScreenOptions,
           headerShown: true,
           headerLargeTitleEnabled: false,
           headerTitle: "Ustawienia",
           headerBackButtonDisplayMode: "minimal",
           headerTransparent: true,
+          headerLeft: () => <StackHeaderBack fallbackHref="/profile" />,
         }}
       />
 
       <Stack.Screen
         name="offers"
         options={{
+          ...coverTabsScreenOptions,
           headerShown: false,
           headerLargeTitleEnabled: true,
           headerTransparent: true,
           headerBackButtonDisplayMode: "minimal",
-          headerTitle: "Moje rezerwacje",
+          headerTitle: "Moje oferty",
         }}
       />
       <Stack.Screen
         name="bookings"
         options={{
+          ...coverTabsScreenOptions,
           headerShown: false,
           headerLargeTitleEnabled: true,
           headerTransparent: true,
@@ -42,20 +48,24 @@ export default function HomeLayout() {
       <Stack.Screen
         name="ranking"
         options={{
+          ...coverTabsScreenOptions,
           headerShown: true,
           headerTitle: "Ranking",
           headerBackButtonDisplayMode: "minimal",
           headerTransparent: true,
+          headerLeft: () => <StackHeaderBack fallbackHref="/profile" />,
         }}
       />
 
       <Stack.Screen
         name="faq"
         options={{
+          ...coverTabsScreenOptions,
           headerShown: true,
           headerTitle: "FAQ",
           headerBackButtonDisplayMode: "minimal",
           headerTransparent: true,
+          headerLeft: () => <StackHeaderBack fallbackHref="/profile" />,
         }}
       />
 

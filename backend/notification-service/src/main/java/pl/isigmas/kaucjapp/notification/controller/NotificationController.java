@@ -4,12 +4,16 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pl.isigmas.kaucjapp.notification.dto.PushTokenRequest;
+import pl.isigmas.kaucjapp.notification.dto.UnreadCountResponse;
+import pl.isigmas.kaucjapp.notification.dto.UserNotificationResponse;
 import pl.isigmas.kaucjapp.notification.entity.Warning;
 import pl.isigmas.kaucjapp.notification.service.PushService;
+import pl.isigmas.kaucjapp.notification.service.UserNotificationInboxService;
 import pl.isigmas.kaucjapp.notification.service.WarningService;
 
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import java.util.regex.Pattern;
 
 @RestController
@@ -22,6 +26,7 @@ public class NotificationController {
 
     private final WarningService warningService;
     private final PushService pushService;
+    private final UserNotificationInboxService inboxService;
 
     @GetMapping("/status")
     public ResponseEntity<String> status() {
@@ -34,6 +39,35 @@ public class NotificationController {
         List<Warning> warnings = warningService.getWarnings();
 
         return ResponseEntity.ok(warnings);
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<List<UserNotificationResponse>> listMine(
+            @RequestHeader("X-User-Id") Long userId,
+            @RequestParam(defaultValue = "30") int limit) {
+        return ResponseEntity.ok(inboxService.list(userId, limit));
+    }
+
+    @GetMapping("/me/unread-count")
+    public ResponseEntity<UnreadCountResponse> unreadCount(
+            @RequestHeader("X-User-Id") Long userId) {
+        return ResponseEntity.ok(new UnreadCountResponse(inboxService.unreadCount(userId)));
+    }
+
+    @PostMapping("/me/{id}/read")
+    public ResponseEntity<Void> markRead(
+            @RequestHeader("X-User-Id") Long userId,
+            @PathVariable UUID id) {
+        if (!inboxService.markRead(userId, id)) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/me/read-all")
+    public ResponseEntity<Void> markAllRead(@RequestHeader("X-User-Id") Long userId) {
+        inboxService.markAllRead(userId);
+        return ResponseEntity.noContent().build();
     }
 
     @PutMapping("/push-token")

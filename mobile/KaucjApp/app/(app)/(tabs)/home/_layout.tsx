@@ -1,4 +1,6 @@
 import { Stack } from "expo-router";
+import { coverTabsScreenOptions } from "@/src/components/navigation/cover-tabs";
+import StackHeaderBack from "@/src/components/navigation/stack-header-back";
 
 export default function HomeLayout() {
   return (
@@ -17,11 +19,13 @@ export default function HomeLayout() {
       <Stack.Screen
         name="chat"
         options={{
+          ...coverTabsScreenOptions,
           headerTitle: "Czat",
           headerLargeTitleEnabled: false,
           headerBackButtonDisplayMode: "minimal",
           headerTransparent: true,
           headerShadowVisible: false,
+          headerLeft: () => <StackHeaderBack />,
         }}
       />
       <Stack.Screen
@@ -35,6 +39,7 @@ export default function HomeLayout() {
           sheetGrabberVisible: true,
           sheetAllowedDetents: [1],
           contentStyle: { backgroundColor: "transparent" },
+          headerLeft: () => <StackHeaderBack />,
         }}
       />
       <Stack.Screen
