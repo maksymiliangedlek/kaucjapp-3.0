@@ -1,13 +1,15 @@
 import React from "react";
-import { StyleSheet, View } from "react-native";
-import { HeaderBackButton } from "@react-navigation/elements";
-import { ChevronLeft } from "lucide-react-native";
 import { useLocalSearchParams, useRouter, type Href } from "expo-router";
-import { colors } from "@/src/theme";
+import StackHeaderBackButton from "./stack-header-back-button";
 
 type StackHeaderBackProps = {
   /** Used when the stack has no history (e.g. deep link / tab reset). */
   fallbackHref?: Href;
+  /**
+   * Leaf cover screens (FAQ, settings): dismiss the modal instead of
+   * `back()`, which can pop past the tab root after a bad stack state.
+   */
+  preferDismiss?: boolean;
 };
 
 /**
@@ -17,6 +19,7 @@ type StackHeaderBackProps = {
  */
 export default function StackHeaderBack({
   fallbackHref,
+  preferDismiss = false,
 }: StackHeaderBackProps) {
   const router = useRouter();
   const params = useLocalSearchParams<{ returnTo?: string | string[] }>();
@@ -24,19 +27,7 @@ export default function StackHeaderBack({
   const returnTo = Array.isArray(returnToRaw) ? returnToRaw[0] : returnToRaw;
 
   return (
-    <HeaderBackButton
-      tintColor={colors.text.primary}
-      displayMode="minimal"
-      backImage={({ tintColor }) => (
-        <View style={styles.iconWrap}>
-          <ChevronLeft
-            size={28}
-            color={tintColor ?? colors.text.primary}
-            strokeWidth={2.25}
-            style={styles.chevron}
-          />
-        </View>
-      )}
+    <StackHeaderBackButton
       onPress={() => {
         if (returnTo) {
           const href = returnTo as Href;
@@ -47,7 +38,10 @@ export default function StackHeaderBack({
           }
           return;
         }
-        // Prefer back over dismiss so nested cover screens don't wipe the stack.
+        if (preferDismiss && router.canDismiss()) {
+          router.dismiss();
+          return;
+        }
         if (router.canGoBack()) {
           router.back();
           return;
@@ -63,15 +57,3 @@ export default function StackHeaderBack({
     />
   );
 }
-
-const styles = StyleSheet.create({
-  iconWrap: {
-    width: 36,
-    height: 36,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  chevron: {
-    marginLeft: -1,
-  },
-});

@@ -20,8 +20,10 @@ import Animated, { FadeInUp } from "react-native-reanimated";
 
 export default function FaqScreen() {
   const openGuide = (role: AppRole) => {
+    // Same profile stack as FAQ (also a cover modal) so the guide opens on
+    // top without dismissing FAQ or flashing Start.
     router.push({
-      pathname: "/product-onboarding",
+      pathname: "/profile/product-onboarding",
       params: { mode: "replay", role },
     });
   };

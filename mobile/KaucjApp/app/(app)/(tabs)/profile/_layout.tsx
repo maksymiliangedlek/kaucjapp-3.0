@@ -1,6 +1,7 @@
 import { Stack } from "expo-router";
 import { coverTabsScreenOptions } from "@/src/components/navigation/cover-tabs";
 import StackHeaderBack from "@/src/components/navigation/stack-header-back";
+import { colors } from "@/src/theme";
 
 export default function ProfileLayout() {
   return (
@@ -18,7 +19,9 @@ export default function ProfileLayout() {
           headerTitle: "Ustawienia",
           headerBackButtonDisplayMode: "minimal",
           headerTransparent: true,
-          headerLeft: () => <StackHeaderBack fallbackHref="/profile" />,
+          headerLeft: () => (
+            <StackHeaderBack fallbackHref="/profile" preferDismiss />
+          ),
         }}
       />
 
@@ -53,7 +56,9 @@ export default function ProfileLayout() {
           headerTitle: "Ranking",
           headerBackButtonDisplayMode: "minimal",
           headerTransparent: true,
-          headerLeft: () => <StackHeaderBack fallbackHref="/profile" />,
+          headerLeft: () => (
+            <StackHeaderBack fallbackHref="/profile" preferDismiss />
+          ),
         }}
       />
 
@@ -65,7 +70,28 @@ export default function ProfileLayout() {
           headerTitle: "FAQ",
           headerBackButtonDisplayMode: "minimal",
           headerTransparent: true,
-          headerLeft: () => <StackHeaderBack fallbackHref="/profile" />,
+          headerLeft: () => (
+            <StackHeaderBack fallbackHref="/profile" preferDismiss />
+          ),
+        }}
+      />
+
+      <Stack.Screen
+        name="product-onboarding"
+        options={{
+          // Same cover as FAQ so the guide stays edge-to-edge. A plain `card`
+          // push on top of FAQ's fullScreenModal settles into a page-sheet
+          // (grey strip + rounded top) after the first layout pass.
+          ...coverTabsScreenOptions,
+          headerShown: true,
+          headerTitle: "",
+          headerTransparent: false,
+          headerShadowVisible: false,
+          headerBackButtonDisplayMode: "minimal",
+          headerStyle: { backgroundColor: colors.background.main },
+          contentStyle: { backgroundColor: colors.background.main },
+          gestureEnabled: false,
+          animation: "fade",
         }}
       />
 
