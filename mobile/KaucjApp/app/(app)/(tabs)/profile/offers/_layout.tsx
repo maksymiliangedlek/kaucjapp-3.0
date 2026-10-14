@@ -1,4 +1,5 @@
 import { Stack } from "expo-router";
+import { coverTabsScreenOptions } from "@/src/components/navigation/cover-tabs";
 import StackHeaderBack from "@/src/components/navigation/stack-header-back";
 
 export default function OffersLayout() {
@@ -17,6 +18,7 @@ export default function OffersLayout() {
       <Stack.Screen
         name="[id]"
         options={{
+          ...coverTabsScreenOptions,
           headerTitle: "Szczegóły oferty",
           headerLargeTitleEnabled: false,
           headerBackButtonDisplayMode: "minimal",
@@ -27,6 +29,7 @@ export default function OffersLayout() {
       <Stack.Screen
         name="chat"
         options={{
+          ...coverTabsScreenOptions,
           headerTitle: "Czat",
           headerLargeTitleEnabled: false,
           headerBackButtonDisplayMode: "minimal",

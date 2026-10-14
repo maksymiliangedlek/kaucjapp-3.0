@@ -1,4 +1,5 @@
 import { Stack } from "expo-router";
+import { coverTabsScreenOptions } from "@/src/components/navigation/cover-tabs";
 import StackHeaderBack from "@/src/components/navigation/stack-header-back";
 
 export default function ProfileLayout() {
@@ -11,6 +12,7 @@ export default function ProfileLayout() {
       <Stack.Screen
         name="settings"
         options={{
+          ...coverTabsScreenOptions,
           headerShown: true,
           headerLargeTitleEnabled: false,
           headerTitle: "Ustawienia",
@@ -23,16 +25,18 @@ export default function ProfileLayout() {
       <Stack.Screen
         name="offers"
         options={{
+          ...coverTabsScreenOptions,
           headerShown: false,
           headerLargeTitleEnabled: true,
           headerTransparent: true,
           headerBackButtonDisplayMode: "minimal",
-          headerTitle: "Moje rezerwacje",
+          headerTitle: "Moje oferty",
         }}
       />
       <Stack.Screen
         name="bookings"
         options={{
+          ...coverTabsScreenOptions,
           headerShown: false,
           headerLargeTitleEnabled: true,
           headerTransparent: true,
@@ -44,6 +48,7 @@ export default function ProfileLayout() {
       <Stack.Screen
         name="ranking"
         options={{
+          ...coverTabsScreenOptions,
           headerShown: true,
           headerTitle: "Ranking",
           headerBackButtonDisplayMode: "minimal",
@@ -55,6 +60,7 @@ export default function ProfileLayout() {
       <Stack.Screen
         name="faq"
         options={{
+          ...coverTabsScreenOptions,
           headerShown: true,
           headerTitle: "FAQ",
           headerBackButtonDisplayMode: "minimal",

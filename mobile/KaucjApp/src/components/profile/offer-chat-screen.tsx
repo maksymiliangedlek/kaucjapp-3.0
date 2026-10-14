@@ -50,14 +50,6 @@ const WRITABLE_STATUSES: OfferStatus[] = [
   "PENDING_CONFIRMATION",
   "COMPLAINT",
 ];
-// Native tab bar height above the home indicator. iOS 26+ renders a taller,
-// floating bar than earlier iOS versions.
-const TAB_BAR_CONTENT_HEIGHT =
-  Platform.OS === "ios"
-    ? parseInt(String(Platform.Version), 10) >= 26
-      ? 72
-      : 49
-    : 80;
 const STICK_TO_BOTTOM_SLACK = 80;
 const REPLY_THRESHOLD = 56;
 const REPLY_SPRING = { damping: 30, stiffness: 420, overshootClamping: true };
@@ -130,9 +122,8 @@ export default function OfferChatScreen({ offerId }: OfferChatScreenProps) {
     }
   };
 
-  const bottomPad = keyboardVisible
-    ? spacing.sm
-    : insets.bottom + TAB_BAR_CONTENT_HEIGHT;
+  // Chat covers the tab bar (fullScreenModal); only home-indicator inset.
+  const bottomPad = keyboardVisible ? spacing.sm : insets.bottom + spacing.sm;
 
   if (!Number.isFinite(offerId) || offerId <= 0) {
     return (

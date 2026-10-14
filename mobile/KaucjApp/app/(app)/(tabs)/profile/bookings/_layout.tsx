@@ -1,4 +1,5 @@
 import { Stack } from "expo-router";
+import { coverTabsScreenOptions } from "@/src/components/navigation/cover-tabs";
 import StackHeaderBack from "@/src/components/navigation/stack-header-back";
 
 export default function BookingsLayout() {
@@ -17,6 +18,7 @@ export default function BookingsLayout() {
       <Stack.Screen
         name="[id]"
         options={{
+          ...coverTabsScreenOptions,
           headerTitle: "Szczegóły rezerwacji",
           headerLargeTitleEnabled: false,
           headerBackButtonDisplayMode: "minimal",
@@ -27,6 +29,7 @@ export default function BookingsLayout() {
       <Stack.Screen
         name="chat"
         options={{
+          ...coverTabsScreenOptions,
           headerTitle: "Czat",
           headerLargeTitleEnabled: false,
           headerBackButtonDisplayMode: "minimal",
