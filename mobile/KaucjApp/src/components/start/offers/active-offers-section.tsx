@@ -40,7 +40,7 @@ export default function ActiveOffersSection() {
   if (openOffers.length === 0) return null;
 
   const stacked = openOffers.length > PEEK_THRESHOLD;
-  const shown = stacked ? openOffers.slice(0, 3) : openOffers;
+  const shown = stacked ? openOffers.slice(0, 2) : openOffers;
 
   return (
     <PeekStack

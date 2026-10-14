@@ -10,20 +10,21 @@ import { ChevronRight } from "lucide-react-native";
 import * as Haptics from "expo-haptics";
 import { colors, spacing } from "@/src/theme";
 
-export const PEEK_THRESHOLD = 2;
+/** Stack (1 full + blurred peek) when item count is greater than this. */
+export const PEEK_THRESHOLD = 1;
 
 interface PeekStackProps {
   title: string;
   count: number;
-  /** Up to 3 preview nodes when stacked; all nodes when not stacked. */
+  /** Up to 2 preview nodes when stacked; all nodes when not stacked. */
   children: ReactNode;
   onOpenList: () => void;
   accessibilityLabel: string;
 }
 
 /**
- * When count > 2: shows 2 full cards + a blurred peek of the 3rd; tap opens list.
- * When count ≤ 2: plain list (no peek chrome).
+ * When count > 1: shows 1 full card + a blurred peek of the 2nd; tap opens list.
+ * When count ≤ 1: plain list (no peek chrome).
  */
 export default function PeekStack({
   title,
@@ -44,7 +45,7 @@ export default function PeekStack({
     );
   }
 
-  const visible = nodes.slice(0, 3);
+  const visible = nodes.slice(0, 2);
 
   const open = () => {
     Haptics.selectionAsync();
@@ -75,9 +76,8 @@ export default function PeekStack({
         <View style={styles.stackClip}>
           <View style={styles.list}>
             {visible[0]}
-            {visible[1]}
             <View style={styles.peekSlot} pointerEvents="none">
-              {visible[2]}
+              {visible[1]}
             </View>
           </View>
           <BlurView intensity={5} tint="light" style={styles.blurBand} />
@@ -126,8 +126,8 @@ const styles = StyleSheet.create({
   stackClip: {
     overflow: "hidden",
     position: "relative",
-    // Clip so only a strip of the 3rd card peeks (preview cards, no CTAs)
-    maxHeight: 310,
+    // Clip so only a strip of the 2nd card peeks (preview cards, no CTAs)
+    maxHeight: 200,
   },
   peekSlot: {
     opacity: 0.95,

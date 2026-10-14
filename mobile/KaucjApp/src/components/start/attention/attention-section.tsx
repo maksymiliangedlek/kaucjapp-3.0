@@ -49,7 +49,7 @@ export default function AttentionSection({
   if (items.length === 0) return null;
 
   const stacked = items.length > PEEK_THRESHOLD;
-  const shown = stacked ? items.slice(0, 3) : items;
+  const shown = stacked ? items.slice(0, 2) : items;
 
   return (
     <PeekStack

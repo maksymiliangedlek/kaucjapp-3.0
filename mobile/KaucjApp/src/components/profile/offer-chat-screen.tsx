@@ -302,6 +302,7 @@ export default function OfferChatScreen({ offerId }: OfferChatScreenProps) {
               placeholder="Napisz wiadomość"
               placeholderTextColor={colors.text.muted}
               multiline
+              textAlignVertical="center"
               maxLength={1000}
               editable={!sendMessage.isPending}
             />
@@ -677,9 +678,16 @@ const styles = StyleSheet.create({
     borderRadius: rounded.lg,
     backgroundColor: colors.background.main,
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
+    // iOS multiline TextInput sits high with equal padding — bias top a bit.
+    paddingTop: Platform.OS === "ios" ? 11 : 10,
+    paddingBottom: Platform.OS === "ios" ? 7 : 10,
     fontSize: 15,
+    lineHeight: 20,
     color: colors.text.primary,
+    ...Platform.select({
+      android: { includeFontPadding: false },
+      default: {},
+    }),
   },
   sendButton: {
     width: 42,
