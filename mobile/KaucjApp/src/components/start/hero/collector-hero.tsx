@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useRouter } from "expo-router";
 import * as Haptics from "expo-haptics";
 import { MapPin, Search } from "lucide-react-native";
+import { polishOfferNoun } from "@/src/lib/start-utils";
 import { colors, rounded, shadows, spacing } from "@/src/theme";
 import MapPreviewSafe from "./map-preview-safe";
 import SectionSkeleton from "../section-skeleton";
@@ -56,7 +57,10 @@ export default function CollectorHero({
 
   const openMap = () => {
     Haptics.selectionAsync();
-    router.push("/(app)/(tabs)/home");
+    router.push({
+      pathname: "/(app)/(tabs)/home",
+      params: { filter: "offers" },
+    });
   };
 
   if (isEmpty) {
@@ -95,10 +99,10 @@ export default function CollectorHero({
         style={styles.card}
         onPress={openMap}
         accessibilityRole="button"
-        accessibilityLabel={`${offerCount} ofert w pobliżu. Otwórz mapę`}
+        accessibilityLabel={`${offerCount} ${polishOfferNoun(offerCount)} w pobliżu. Otwórz mapę`}
       >
         <Text style={styles.title}>
-          {offerCount} {offerCount === 1 ? "oferta" : "ofert"} w pobliżu
+          {offerCount} {polishOfferNoun(offerCount)} w pobliżu
         </Text>
         <Text style={styles.subtitle}>
           Zarezerwuj, zanim ktoś Cię uprzedzi

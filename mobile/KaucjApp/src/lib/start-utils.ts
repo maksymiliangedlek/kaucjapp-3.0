@@ -1,6 +1,16 @@
 import { Offer } from "@/src/types";
 import { getTimeParts, MINUTE, parseDateToMs } from "./countdown";
 
+/** Polish plural for "oferta" (1 oferta, 2 oferty, 5 ofert, 12 ofert, 22 oferty). */
+export function polishOfferNoun(count: number): string {
+  const n = Math.abs(Math.trunc(count));
+  const mod10 = n % 10;
+  const mod100 = n % 100;
+  if (n === 1) return "oferta";
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return "oferty";
+  return "ofert";
+}
+
 export function formatOfferItemsLabel(offer: Offer): string {
   const parts: string[] = [];
   if (offer.plasticQuantity > 0) {

@@ -90,7 +90,12 @@ export default function NearbyMachinesRow({
             key={machine.id}
             machine={machine}
             distance={distance}
-            onPress={() => router.push("/(app)/(tabs)/home")}
+            onPress={() =>
+              router.push({
+                pathname: "/(app)/(tabs)/home",
+                params: { filter: "machines" },
+              })
+            }
           />
         ))}
       </ScrollView>

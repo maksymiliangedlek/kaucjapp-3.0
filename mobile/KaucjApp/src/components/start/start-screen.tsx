@@ -178,7 +178,12 @@ export default function StartScreen() {
         {(nearby.data?.length ?? 0) > 0 ? (
           <Pressable
             style={styles.linkRow}
-            onPress={() => router.push("/(app)/(tabs)/home")}
+            onPress={() =>
+              router.push({
+                pathname: "/(app)/(tabs)/home",
+                params: { filter: "offers" },
+              })
+            }
             accessibilityRole="link"
             accessibilityLabel="Zobacz wszystkie oferty"
           >
