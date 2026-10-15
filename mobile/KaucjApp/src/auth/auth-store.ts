@@ -53,8 +53,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
     const updatedUser = { ...currentUser, ...updates };
 
-    await authStorage.setUserData(updatedUser);
+    // Update in-memory state first so navigation guards see the change
+    // before SecureStore I/O finishes (avoids bounce back to onboarding).
     set({ user: updatedUser });
+    await authStorage.setUserData(updatedUser);
   },
 
   hydrate: async (apiClient) => {
