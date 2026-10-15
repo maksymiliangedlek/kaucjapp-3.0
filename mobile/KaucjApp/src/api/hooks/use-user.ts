@@ -69,7 +69,7 @@ export const useUpdateUser = () => {
         updates.productOnboardingCompleted = true;
       }
 
-      useAuthStore.getState().patchUser(updates);
+      return useAuthStore.getState().patchUser(updates);
     },
   });
 };
