@@ -78,6 +78,7 @@ function MapSurface({
             key={`offer-${offer.offerId}`}
             offer={offer}
             onPress={onOfferPress}
+            layoutKey={filter}
           />
         ))}
 
@@ -86,6 +87,7 @@ function MapSurface({
             key={`reserved-${offer.offerId}`}
             offer={offer}
             onPress={onOfferPress}
+            layoutKey={filter}
           />
         ))}
 
@@ -94,6 +96,7 @@ function MapSurface({
             key={`machine-${machine.id}`}
             machine={machine}
             onPress={onMachinePress}
+            layoutKey={filter}
           />
         ))}
       </MapView>
