@@ -12,7 +12,7 @@
       "supportsTablet": false,
       "icon": "./assets/icons/icon_composer.icon",
       "bundleIdentifier": "com.km44.kaucjapp",
-      "buildNumber": "10",
+      "buildNumber": "13",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
