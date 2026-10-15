@@ -1,8 +1,9 @@
 import {
-  KeyboardAvoidingView,
-  Platform,
+  Keyboard,
+  ScrollView,
   StyleSheet,
   Text,
+  TouchableWithoutFeedback,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -32,43 +33,49 @@ export function SignUpStepLayout({
 }: Props) {
   const insets = useSafeAreaInsets();
   const reduceMotion = useReducedMotion();
+  const topPad = insets.top + SIGN_UP_CHROME_HEIGHT + spacing.lg;
 
   return (
-    <KeyboardAvoidingView
-      style={styles.root}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-    >
-      <Animated.View
-        entering={
-          reduceMotion
-            ? undefined
-            : FadeInDown.springify().damping(22).stiffness(280).mass(0.85)
-        }
-        style={[
-          styles.body,
-          { paddingTop: insets.top + SIGN_UP_CHROME_HEIGHT + spacing.lg },
-        ]}
-      >
-        <Text accessibilityRole="header" style={styles.title}>
-          {title}
-        </Text>
-        <Text style={styles.subtitle}>{subtitle}</Text>
-        <View style={styles.field}>{children}</View>
-      </Animated.View>
-      <View
-        style={[
-          styles.footer,
-          { paddingBottom: Math.max(insets.bottom, spacing.md) },
-        ]}
-      >
-        <AuthButton
-          label={continueLabel}
-          onPress={onContinue}
-          isLoading={loading}
-          disabled={disabled}
-        />
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+      <View style={styles.root}>
+        <ScrollView
+          style={styles.scroll}
+          contentContainerStyle={[
+            styles.scrollContent,
+            {
+              paddingTop: topPad,
+              paddingBottom: Math.max(insets.bottom, spacing.md),
+            },
+          ]}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
+        >
+          <Animated.View
+            entering={
+              reduceMotion
+                ? undefined
+                : FadeInDown.springify().damping(22).stiffness(280).mass(0.85)
+            }
+            style={styles.body}
+          >
+            <Text accessibilityRole="header" style={styles.title}>
+              {title}
+            </Text>
+            <Text style={styles.subtitle}>{subtitle}</Text>
+            <View style={styles.field}>{children}</View>
+          </Animated.View>
+          <View style={styles.footer}>
+            <AuthButton
+              label={continueLabel}
+              onPress={onContinue}
+              isLoading={loading}
+              disabled={disabled}
+            />
+          </View>
+        </ScrollView>
       </View>
-    </KeyboardAvoidingView>
+    </TouchableWithoutFeedback>
   );
 }
 
@@ -77,9 +84,15 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background.main,
   },
-  body: {
+  scroll: {
     flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
     paddingHorizontal: spacing.lg,
+  },
+  body: {
+    flexGrow: 1,
   },
   title: {
     fontSize: 34,
@@ -98,6 +111,6 @@ const styles = StyleSheet.create({
     marginTop: spacing.xxl,
   },
   footer: {
-    paddingHorizontal: spacing.lg,
+    marginTop: spacing.xl,
   },
 });

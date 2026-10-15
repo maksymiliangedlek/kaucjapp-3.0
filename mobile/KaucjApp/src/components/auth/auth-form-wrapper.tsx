@@ -1,10 +1,9 @@
 import {
-  KeyboardAvoidingView,
-  Platform,
   Keyboard,
   TouchableWithoutFeedback,
   ScrollView,
   StyleSheet,
+  View,
   type ViewStyle,
 } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
@@ -18,15 +17,13 @@ type Props = {
 
 export function AuthFormWrapper({ children, contentStyle }: Props) {
   return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <KeyboardAvoidingView
-        style={styles.container}
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-      >
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+      <View style={styles.container}>
         <ScrollView
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
         >
           <Animated.View
             entering={FadeInDown.duration(600).springify()}
@@ -35,7 +32,7 @@ export function AuthFormWrapper({ children, contentStyle }: Props) {
             {children}
           </Animated.View>
         </ScrollView>
-      </KeyboardAvoidingView>
+      </View>
     </TouchableWithoutFeedback>
   );
 }
