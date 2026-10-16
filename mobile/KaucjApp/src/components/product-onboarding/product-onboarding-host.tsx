@@ -134,41 +134,39 @@ export default function ProductOnboardingHost({
 
   const finishFirstRun = useCallback(() => {
     setIsFinishing(true);
-    updateUser(
-      {
-        ...(selectedRole ? { appRole: selectedRole } : {}),
-        productOnboardingCompleted: true,
+    const localUpdates = {
+      ...(selectedRole ? { appRole: selectedRole } : {}),
+      productOnboardingCompleted: true as const,
+    };
+    updateUser(localUpdates, {
+      onSuccess: async () => {
+        // Guard `(tabs)` on productOnboardingCompleted — await local patch
+        // before replace, otherwise navigation bounces back here with a stuck spinner.
+        await patchUser(localUpdates);
+        leaveToApp();
       },
-      {
-        onSuccess: () => {
-          leaveToApp();
-        },
-        onError: () => {
-          setIsFinishing(false);
-          Alert.alert(
-            "Brak połączenia",
-            "Nie udało się zapisać postępu. Spróbuj ponownie lub kontynuuj offline.",
-            [
-              { text: "Spróbuj ponownie", onPress: finishFirstRun },
-              {
-                text: "Kontynuuj offline",
-                style: "destructive",
-                onPress: async () => {
-                  await appStorage.setPendingProductOnboardingSync({
-                    appRole: selectedRole,
-                  });
-                  await patchUser({
-                    ...(selectedRole ? { appRole: selectedRole } : {}),
-                    productOnboardingCompleted: true,
-                  });
-                  leaveToApp();
-                },
+      onError: () => {
+        setIsFinishing(false);
+        Alert.alert(
+          "Brak połączenia",
+          "Nie udało się zapisać postępu. Spróbuj ponownie lub kontynuuj offline.",
+          [
+            { text: "Spróbuj ponownie", onPress: finishFirstRun },
+            {
+              text: "Kontynuuj offline",
+              style: "destructive",
+              onPress: async () => {
+                await appStorage.setPendingProductOnboardingSync({
+                  appRole: selectedRole,
+                });
+                await patchUser(localUpdates);
+                leaveToApp();
               },
-            ],
-          );
-        },
+            },
+          ],
+        );
       },
-    );
+    });
   }, [leaveToApp, patchUser, selectedRole, updateUser]);
 
   const handleSkip = useCallback(() => {
