@@ -1,16 +1,20 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useState } from "react";
 import {
   AccessibilityInfo,
   Alert,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
-import { ChevronLeft } from "lucide-react-native";
+import { useNavigation } from "@react-navigation/native";
 import * as Haptics from "expo-haptics";
 import * as Location from "expo-location";
 import * as Notifications from "expo-notifications";
@@ -26,6 +30,7 @@ import {
   progressMeta,
 } from "@/src/constants/product-onboarding/steps";
 import { colors, spacing } from "@/src/theme";
+import StackHeaderBackButton from "@/src/components/navigation/stack-header-back-button";
 import RoleSelectScreen from "./role-select-screen";
 import GuideStepScreen from "./guide-step-screen";
 import ProgressBar from "./progress-bar";
@@ -38,8 +43,16 @@ function parseRoleParam(value: string | undefined): AppRole | null {
   return null;
 }
 
-export default function ProductOnboardingHost() {
+type ProductOnboardingHostProps = {
+  /** Use the stack header slots (same as FAQ) instead of an in-body top bar. */
+  useNativeHeader?: boolean;
+};
+
+export default function ProductOnboardingHost({
+  useNativeHeader = false,
+}: ProductOnboardingHostProps) {
   const params = useLocalSearchParams<{ mode?: string; role?: string }>();
+  const navigation = useNavigation();
   const isReplay = params.mode === "replay";
   const replayRole = parseRoleParam(
     Array.isArray(params.role) ? params.role[0] : params.role,
@@ -84,9 +97,13 @@ export default function ProductOnboardingHost() {
   const closeReplay = useCallback(() => {
     if (router.canGoBack()) {
       router.back();
-    } else {
-      leaveToApp();
+      return;
     }
+    if (router.canDismiss()) {
+      router.dismiss();
+      return;
+    }
+    leaveToApp();
   }, [leaveToApp]);
 
   const requestPermissionIfNeeded = useCallback(
@@ -152,15 +169,15 @@ export default function ProductOnboardingHost() {
     });
   }, [leaveToApp, patchUser, selectedRole, updateUser]);
 
-  const handleSkip = () => {
+  const handleSkip = useCallback(() => {
     if (isReplay) {
       closeReplay();
       return;
     }
     finishFirstRun();
-  };
+  }, [closeReplay, finishFirstRun, isReplay]);
 
-  const handleBack = () => {
+  const handleBack = useCallback(() => {
     if (onRoleScreen) return;
     if (stepIndex === 0) {
       if (isReplay && replayRole) {
@@ -171,7 +188,7 @@ export default function ProductOnboardingHost() {
       return;
     }
     setStepIndex((i) => i - 1);
-  };
+  }, [closeReplay, isReplay, onRoleScreen, replayRole, stepIndex]);
 
   const handleNext = async () => {
     if (!reduceMotion) {
@@ -210,34 +227,69 @@ export default function ProductOnboardingHost() {
       : productOnboardingCopy.cta.next;
 
   const showBack = !onRoleScreen;
+  const insets = useSafeAreaInsets();
 
-  return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.topBar}>
-        {showBack ? (
-          <Pressable
-            onPress={handleBack}
-            hitSlop={12}
-            accessibilityRole="button"
-            accessibilityLabel={productOnboardingCopy.a11y.back}
-            style={styles.iconHit}
-          >
-            <ChevronLeft size={28} color={colors.text.primary} />
-          </Pressable>
-        ) : (
-          <View style={styles.iconHit} />
-        )}
+  useLayoutEffect(() => {
+    if (!useNativeHeader) return;
+    // FAQ already has a header; without an explicit status-bar height the
+    // nested cover modal inherits 0 and the chrome jumps into the island
+    // after the first layout pass.
+    navigation.setOptions({
+      headerStatusBarHeight: insets.top,
+      headerLeft: showBack
+        ? () => <StackHeaderBackButton onPress={handleBack} />
+        : () => <View style={styles.headerPlaceholder} />,
+      headerRight: () => (
         <Pressable
           onPress={handleSkip}
           disabled={busy}
-          hitSlop={12}
+          hitSlop={{ top: 8, bottom: 8, left: 12, right: 12 }}
           accessibilityRole="button"
           accessibilityLabel={productOnboardingCopy.cta.skip}
-          style={styles.skipHit}
+          style={styles.headerSkip}
         >
-          <Text style={styles.skipText}>{productOnboardingCopy.cta.skip}</Text>
+          <Text style={[styles.headerSkipText, busy && styles.skipTextDisabled]}>
+            {productOnboardingCopy.cta.skip}
+          </Text>
         </Pressable>
-      </View>
+      ),
+    });
+  }, [
+    busy,
+    handleBack,
+    handleSkip,
+    insets.top,
+    navigation,
+    showBack,
+    useNativeHeader,
+  ]);
+
+  return (
+    <SafeAreaView
+      style={styles.container}
+      edges={useNativeHeader ? ["bottom", "left", "right"] : undefined}
+    >
+      {useNativeHeader ? null : (
+        <View style={styles.topBar}>
+          {showBack ? (
+            <StackHeaderBackButton onPress={handleBack} />
+          ) : (
+            <View style={styles.headerPlaceholder} />
+          )}
+          <Pressable
+            onPress={handleSkip}
+            disabled={busy}
+            hitSlop={12}
+            accessibilityRole="button"
+            accessibilityLabel={productOnboardingCopy.cta.skip}
+            style={styles.skipHit}
+          >
+            <Text style={[styles.skipText, busy && styles.skipTextDisabled]}>
+              {productOnboardingCopy.cta.skip}
+            </Text>
+          </Pressable>
+        </View>
+      )}
 
       {!onRoleScreen && progress ? (
         <ProgressBar {...progress} reduceMotion={reduceMotion} />
@@ -286,11 +338,34 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.sm,
     minHeight: 44,
   },
-  iconHit: {
+  headerPlaceholder: {
     width: 44,
     height: 44,
-    alignItems: "center",
+  },
+  headerSkip: {
     justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: spacing.sm,
+    // Keep the liquid-glass pill compact — minHeight 44 stretched it and
+    // left the label optically low inside the capsule.
+    paddingVertical: Platform.OS === "ios" ? 6 : 8,
+  },
+  headerSkipText: {
+    fontSize: 17,
+    lineHeight: 20,
+    fontWeight: "600",
+    color: colors.text.secondary,
+    ...Platform.select({
+      ios: {
+        // SF Pro sits optically low in a short capsule; nudge up a hair.
+        marginTop: -1,
+      },
+      android: {
+        includeFontPadding: false,
+        textAlignVertical: "center" as const,
+      },
+      default: {},
+    }),
   },
   skipHit: {
     minHeight: 44,
@@ -300,8 +375,12 @@ const styles = StyleSheet.create({
   },
   skipText: {
     fontSize: 17,
+    lineHeight: 22,
     color: colors.text.secondary,
     fontWeight: "600",
+  },
+  skipTextDisabled: {
+    opacity: 0.5,
   },
   progressSpacer: {
     height: spacing.sm,
