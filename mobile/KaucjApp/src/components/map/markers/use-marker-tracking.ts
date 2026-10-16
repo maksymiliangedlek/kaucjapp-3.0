@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 
-const TRACKING_FALLBACK_MS = 600;
+// Dense map remounts (filter change with many pins) need a longer window
+// before the native snapshot freezes — 600ms was too short in production.
+const TRACKING_FALLBACK_MS = 1200;
 
 // this hook manages the tracking of the marker - it is used to avoid the marker from freezing (snapshot) when the content changes
 export function useMarkerTracking(contentKey: string | number) {
