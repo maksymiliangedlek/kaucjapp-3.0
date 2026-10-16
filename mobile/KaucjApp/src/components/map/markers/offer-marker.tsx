@@ -9,18 +9,22 @@ import { useMarkerTracking } from "./use-marker-tracking";
 interface OfferMarkerProps {
   offer: Offer;
   onPress: (offer: Offer) => void;
+  /** Bumps when map layers change (e.g. filter) so iOS re-snapshots the bubble. */
+  layoutKey?: string;
 }
 
 export const OfferMarker = React.memo(
-  ({ offer, onPress }: OfferMarkerProps) => {
+  ({ offer, onPress, layoutKey = "" }: OfferMarkerProps) => {
     // Re-snapshot whenever any visible value changes so the bubble never goes stale.
     const { tracksViewChanges, onRendered } = useMarkerTracking(
-      `${offer.totalQuantity}-${offer.totalIncome}-${offer.status}`,
+      `${layoutKey}-${offer.totalQuantity}-${offer.totalIncome}-${offer.status}`,
     );
 
     return (
       <Marker
-        identifier={`offer-${offer.offerId}`}
+        // Include layoutKey so iOS does not reuse a blank annotation view
+        // after filter remounts (identifier alone survives React key changes).
+        identifier={`offer-${offer.offerId}-${layoutKey}`}
         coordinate={{ latitude: offer.latitude, longitude: offer.longitude }}
         onPress={() => onPress(offer)}
         tracksViewChanges={tracksViewChanges}
@@ -42,6 +46,7 @@ export const OfferMarker = React.memo(
     );
   },
   (prevProps, nextProps) =>
+    prevProps.layoutKey === nextProps.layoutKey &&
     prevProps.offer.updatedAt === nextProps.offer.updatedAt &&
     prevProps.offer.offerId === nextProps.offer.offerId &&
     prevProps.offer.status === nextProps.offer.status &&

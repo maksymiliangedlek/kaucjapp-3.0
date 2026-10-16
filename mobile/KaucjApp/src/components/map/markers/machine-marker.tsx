@@ -7,6 +7,8 @@ import { useMarkerTracking } from "./use-marker-tracking";
 interface MachineMarkerProps {
   machine: DepositMachine;
   onPress: (machine: DepositMachine) => void;
+  /** Bumps when map layers change (e.g. filter) so iOS re-snapshots the pin. */
+  layoutKey?: string;
 }
 
 const markerImages: Record<DepositMachineStatus, ImageSourcePropType> = {
@@ -16,13 +18,15 @@ const markerImages: Record<DepositMachineStatus, ImageSourcePropType> = {
 };
 
 export const MachineMarker = React.memo(
-  ({ machine, onPress }: MachineMarkerProps) => {
+  ({ machine, onPress, layoutKey = "" }: MachineMarkerProps) => {
     // this forces a fresh native snapshot - in other words - it forces the marker to be re-rendered and updates the color of the marker.
-    const { tracksViewChanges, onRendered } = useMarkerTracking(machine.status);
+    const { tracksViewChanges, onRendered } = useMarkerTracking(
+      `${layoutKey}-${machine.status}`,
+    );
 
     return (
       <Marker
-        identifier={`machine-${machine.id}`}
+        identifier={`machine-${machine.id}-${layoutKey}`}
         coordinate={{
           latitude: machine.latitude,
           longitude: machine.longitude,
@@ -45,6 +49,7 @@ export const MachineMarker = React.memo(
     );
   },
   (prevProps, nextProps) =>
+    prevProps.layoutKey === nextProps.layoutKey &&
     prevProps.machine.id === nextProps.machine.id &&
     prevProps.machine.status === nextProps.machine.status &&
     prevProps.machine.latitude === nextProps.machine.latitude &&

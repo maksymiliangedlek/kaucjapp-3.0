@@ -75,25 +75,30 @@ function MapSurface({
       >
         {offers.map((offer) => (
           <OfferMarker
-            key={`offer-${offer.offerId}`}
+            // Remount on filter change — iOS blanks custom markers when a
+            // dense sibling layer (kaucjomaty) is torn down otherwise.
+            key={`offer-${offer.offerId}-${filter}`}
             offer={offer}
             onPress={onOfferPress}
+            layoutKey={filter}
           />
         ))}
 
         {reservedOffers.map((offer) => (
           <ReservedOfferMarker
-            key={`reserved-${offer.offerId}`}
+            key={`reserved-${offer.offerId}-${filter}`}
             offer={offer}
             onPress={onOfferPress}
+            layoutKey={filter}
           />
         ))}
 
         {machines.map((machine) => (
           <MachineMarker
-            key={`machine-${machine.id}`}
+            key={`machine-${machine.id}-${filter}`}
             machine={machine}
             onPress={onMachinePress}
+            layoutKey={filter}
           />
         ))}
       </MapView>
