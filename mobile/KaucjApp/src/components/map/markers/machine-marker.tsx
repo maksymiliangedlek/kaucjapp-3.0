@@ -26,7 +26,7 @@ export const MachineMarker = React.memo(
 
     return (
       <Marker
-        identifier={`machine-${machine.id}`}
+        identifier={`machine-${machine.id}-${layoutKey}`}
         coordinate={{
           latitude: machine.latitude,
           longitude: machine.longitude,

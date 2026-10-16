@@ -21,7 +21,7 @@ export const ReservedOfferMarker = React.memo(
 
     return (
       <Marker
-        identifier={`reserved-${offer.offerId}`}
+        identifier={`reserved-${offer.offerId}-${layoutKey}`}
         coordinate={{ latitude: offer.latitude, longitude: offer.longitude }}
         onPress={() => onPress(offer)}
         tracksViewChanges={tracksViewChanges}

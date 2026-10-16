@@ -22,7 +22,9 @@ export const OfferMarker = React.memo(
 
     return (
       <Marker
-        identifier={`offer-${offer.offerId}`}
+        // Include layoutKey so iOS does not reuse a blank annotation view
+        // after filter remounts (identifier alone survives React key changes).
+        identifier={`offer-${offer.offerId}-${layoutKey}`}
         coordinate={{ latitude: offer.latitude, longitude: offer.longitude }}
         onPress={() => onPress(offer)}
         tracksViewChanges={tracksViewChanges}
